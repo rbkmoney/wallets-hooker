@@ -3,6 +3,8 @@ package com.rbkmoney.wallets_hooker.dao.impl;
 import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.QueueDao;
 import com.rbkmoney.wallets_hooker.model.Hook;
+import com.rbkmoney.wallets_hooker.model.Task;
+import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
 import com.rbkmoney.wallets_hooker.model.WalletsQueue;
 import com.rbkmoney.wallets_hooker.retry.RetryPoliciesService;
 import com.rbkmoney.wallets_hooker.retry.RetryPolicy;
@@ -17,8 +19,11 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 
 import javax.sql.DataSource;
+import java.util.AbstractMap;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by inalarsanukaev on 14.11.17.
@@ -33,7 +38,8 @@ public class WalletsQueueDao extends NamedParameterJdbcDaoSupport implements Que
         setDataSource(dataSource);
     }
 
-    public RowMapper<WalletsQueue> queueWithPolicyRowMapper = (rs, i) -> {
+    public RowMapper<TaskQueuePair<WalletsQueue>> queueWithPolicyRowMapper = (rs, i) -> {
+        Task task = new Task(rs.getLong("message_id"), rs.getLong("id"));
         WalletsQueue queue = new WalletsQueue();
         queue.setId(rs.getLong("id"));
         queue.setWalletId(rs.getString("wallet_id"));
@@ -50,7 +56,7 @@ public class WalletsQueueDao extends NamedParameterJdbcDaoSupport implements Que
         hook.setRetryPolicyType(retryPolicyType);
         queue.setHook(hook);
         policy.fillQueue(queue, rs);
-        return queue;
+        return new TaskQueuePair<>(task, queue);
     };
 
     @Override
@@ -73,23 +79,33 @@ public class WalletsQueueDao extends NamedParameterJdbcDaoSupport implements Que
     }
 
     @Override
-    public List<WalletsQueue> getList(Collection<Long> ids) {
+    public Map<Long, List<TaskQueuePair<WalletsQueue>>> getTaskQueuePairsMap(Collection<Long> excludeQueueIds) {
         final String sql =
-                " select q.id, q.hook_id, q.wallet_id, q.fail_count, q.last_fail_time, q.next_time, wh.party_id, wh.url, wh.topic as message_type, k.pub_key, k.priv_key, wh.enabled, wh.retry_policy " +
-                        " from whook.wallets_queue q " +
+                " select st.message_id, q.id, q.hook_id, q.wallet_id, q.fail_count, q.last_fail_time, q.next_time, wh.party_id, wh.url, wh.topic as message_type, k.pub_key, k.priv_key, wh.enabled, wh.retry_policy " +
+                        " from whook.scheduled_task st "+
+                        " join whook.wallets_queue q on st.queue_id = q.id AND st.message_type=CAST(:message_type as whook.message_topic)" +
                         " join whook.webhook wh on wh.id = q.hook_id and wh.enabled and wh.topic=CAST(:message_type as whook.message_topic)" +
                         " join whook.party_key k on k.party_id = wh.party_id " +
-                        " where q.id in (:ids) and q.enabled and :system_time >= coalesce(q.next_time, 0)";
-        final MapSqlParameterSource params = new MapSqlParameterSource("ids", ids)
+                        " where st.message_type=CAST(:message_type as whook.message_topic) "+
+                        (excludeQueueIds.size() > 0 ? " AND q.id not in (:queue_ids)" : "") +
+                        " and q.enabled and :system_time >= coalesce(q.next_time, 0) " +
+                        " ORDER BY message_id ASC";
+        final MapSqlParameterSource params = new MapSqlParameterSource("queue_ids", excludeQueueIds)
                 .addValue("message_type", getMessagesTopic())
                 .addValue("system_time", System.currentTimeMillis());
         try {
-            return getNamedParameterJdbcTemplate().query(sql, params, queueWithPolicyRowMapper);
+            return splitByQueue(getNamedParameterJdbcTemplate().query(sql, params, queueWithPolicyRowMapper));
         } catch (NestedRuntimeException e) {
             throw new DaoException(e);
         }
     }
 
+    //should preserve order by message id
+    private Map<Long, List<TaskQueuePair<WalletsQueue>>> splitByQueue(List<TaskQueuePair<WalletsQueue>> orderedByMessageIdTasks) {
+        return orderedByMessageIdTasks.stream().collect(Collectors.groupingBy(x -> x.getQueue().getId()));
+    }
+
+    @Override
     public void updateRetries(WalletsQueue queue) {
         final String sql =
                 " update whook.wallets_queue " +

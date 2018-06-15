@@ -3,7 +3,8 @@ package com.rbkmoney.wallets_hooker.dao;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.impl.WalletsQueueDao;
 import com.rbkmoney.wallets_hooker.dao.impl.WalletsTaskDao;
-import com.rbkmoney.wallets_hooker.model.Task;
+import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
+import com.rbkmoney.wallets_hooker.model.WalletsQueue;
 import com.rbkmoney.wallets_hooker.utils.ConverterUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -55,10 +56,10 @@ public class WalletsTaskDaoTest extends AbstractIntegrationTest {
 
     @Test
     public void createDeleteGet() {
-        Map<Long, List<Task>> scheduled = taskDao.getScheduled(new ArrayList<>());
+        Map<Long, List<TaskQueuePair<WalletsQueue>>> scheduled = queueDao.getTaskQueuePairsMap(new ArrayList<>());
         assertEquals(1, scheduled.size());
         taskDao.remove(scheduled.keySet().iterator().next(), messageId);
-        assertEquals(0, taskDao.getScheduled(new ArrayList<>()).size());
+        assertEquals(0, queueDao.getTaskQueuePairsMap(new ArrayList<>()).size());
 
     }
 

@@ -6,6 +6,7 @@ import com.rbkmoney.wallets_hooker.dao.TaskDao;
 import com.rbkmoney.wallets_hooker.model.Message;
 import com.rbkmoney.wallets_hooker.model.Queue;
 import com.rbkmoney.wallets_hooker.model.Task;
+import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
 import com.rbkmoney.wallets_hooker.retry.RetryPoliciesService;
 import com.rbkmoney.wallets_hooker.retry.RetryPolicyType;
 import com.rbkmoney.wallets_hooker.service.PostSender;
@@ -47,24 +48,24 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
     @Scheduled(fixedRateString = "${message.scheduler.delay}")
     public void loop() throws InterruptedException {
         final List<Long> currentlyProcessedQueues = new ArrayList<>(processedQueues);
-
-        final Map<Long, List<Task>> scheduledTasks = taskDao.getScheduled(currentlyProcessedQueues);
-        if (scheduledTasks.entrySet().isEmpty()) {
+        Map<Long, List<TaskQueuePair<Q>>> taskQueuePairsMap = queueDao.getTaskQueuePairsMap(currentlyProcessedQueues);
+        if (taskQueuePairsMap.entrySet().isEmpty()) {
             return;
         }
-        final Map<Long, Q> healthyQueues = queueDao.getList(scheduledTasks.keySet())
-                .stream().collect(Collectors.toMap(Q::getId, v -> v));
+        final Map<Long, Q> queuesMap = taskQueuePairsMap.entrySet()
+                .stream().collect(Collectors.toMap(Map.Entry::getKey, v -> v.getValue().get(0).getQueue()));
 
-        processedQueues.addAll(healthyQueues.keySet());
+        processedQueues.addAll(queuesMap.keySet());
 
-        final Set<Long> messageIdsToSend = getMessageIdsFilteredByQueues(scheduledTasks, healthyQueues.keySet());
-        final Map<Long, M> messagesMap = loadMessages(messageIdsToSend);
+        //Set of message ids.
+        final Set<Long> messageIdsToSend = taskQueuePairsMap.values().stream().flatMap(Collection::stream).map(x -> x.getTask().getMessageId()).collect(Collectors.toSet());
+        final Map<Long, M> messagesMap = messageDao.getBy(messageIdsToSend).stream().collect(Collectors.toMap(Message::getId, x -> x));
 
-        log.info("Schedulled tasks count = {}, after filter = {}", scheduledTasks.size(), messageIdsToSend.size());
+        log.info("Schedulled tasks count = {}", messageIdsToSend.size());
 
-        List<MessageSender<M, Q>> messageSenderList = new ArrayList<>(healthyQueues.keySet().size());
-        for (long queueId : healthyQueues.keySet()) {
-            List<Task> tasks = scheduledTasks.get(queueId);
+        List<MessageSender<M, Q>> messageSenderList = new ArrayList<>(queuesMap.keySet().size());
+        for (long queueId : queuesMap.keySet()) {
+            List<Task> tasks = taskQueuePairsMap.get(queueId).stream().map(TaskQueuePair::getTask).collect(Collectors.toList());
             List<M> messagesForQueue = new ArrayList<>();
             for (Task task : tasks) {
                 M e = messagesMap.get(task.getMessageId());
@@ -74,7 +75,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
                     log.error("WalletsMessage with id {} couldn't be null", task.getMessageId());
                 }
             }
-            MessageSender<M, Q> messageSender = getMessageSender(new MessageSender.QueueStatus<Q>(healthyQueues.get(queueId)), messagesForQueue, taskDao, signer, postSender);
+            MessageSender<M, Q> messageSender = getMessageSender(new MessageSender.QueueStatus<>(queuesMap.get(queueId)), messagesForQueue, taskDao, signer, postSender);
             messageSenderList.add(messageSender);
         }
 
@@ -117,25 +118,6 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
             log.warn("Queue {} was disabled according to retry policy.", queue.getId());
         }
         queueDao.updateRetries(queue);
-    }
-
-    private Set<Long> getMessageIdsFilteredByQueues(Map<Long, List<Task>> scheduledTasks, Collection<Long> queueIds) {
-        final Set<Long> messageIds = new HashSet<>();
-        for (long queueId : queueIds) {
-            for (Task t : scheduledTasks.get(queueId)) {
-                messageIds.add(t.getMessageId());
-            }
-        }
-        return messageIds;
-    }
-
-    private Map<Long, M> loadMessages(Collection<Long> messageIds) {
-        List<M> messages =  messageDao.getBy(messageIds);
-        Map<Long, M> map = new HashMap<>();
-        for(M message: messages){
-            map.put(message.getId(), message);
-        }
-        return map;
     }
 
     @PreDestroy

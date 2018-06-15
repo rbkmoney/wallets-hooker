@@ -36,7 +36,7 @@ public class AppConfiguration {
     @Bean
     @DependsOn("dbInitializer")
     public WalletsQueueDao walletsQueueDao(DataSource dataSource) {
-        return new CacheableWalletsQueueDao(dataSource);
+        return new WalletsQueueDao(dataSource);
     }
 
     @Bean
