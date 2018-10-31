@@ -1,6 +1,5 @@
 package com.rbkmoney.wallets_hooker.model;
 
-import com.rbkmoney.wallets_hooker.dao.WebhookAdditionalFilter;
 import com.rbkmoney.wallets_hooker.retry.RetryPolicyType;
 
 import java.util.Objects;
@@ -9,7 +8,6 @@ import java.util.Set;
 public class Hook {
     private long id;
     private String partyId;
-    private String topic;
     private Set<WebhookAdditionalFilter> filters;
     private String url;
     private String pubKey;
@@ -17,20 +15,6 @@ public class Hook {
     private boolean enabled;
     private RetryPolicyType retryPolicyType;
 
-    public Hook(long id, String partyId, String topic, Set<WebhookAdditionalFilter> filters, String url, String pubKey, String privKey, boolean enabled, RetryPolicyType retryPolicyType) {
-        this.id = id;
-        this.partyId = partyId;
-        this.topic = topic;
-        this.filters = filters;
-        this.url = url;
-        this.pubKey = pubKey;
-        this.privKey = privKey;
-        this.enabled = enabled;
-        this.retryPolicyType = retryPolicyType;
-    }
-
-    public Hook() {
-    }
 
     public long getId() {
         return id;
@@ -46,14 +30,6 @@ public class Hook {
 
     public void setPartyId(String partyId) {
         this.partyId = partyId;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
     }
 
     public Set<WebhookAdditionalFilter> getFilters() {
@@ -104,7 +80,6 @@ public class Hook {
         this.retryPolicyType = retryPolicyType;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -113,7 +88,6 @@ public class Hook {
         return getId() == hook.getId() &&
                 isEnabled() == hook.isEnabled() &&
                 Objects.equals(getPartyId(), hook.getPartyId()) &&
-                Objects.equals(getTopic(), hook.getTopic()) &&
                 Objects.equals(getFilters(), hook.getFilters()) &&
                 Objects.equals(getUrl(), hook.getUrl()) &&
                 Objects.equals(getPubKey(), hook.getPubKey()) &&
@@ -124,16 +98,64 @@ public class Hook {
     @Override
     public int hashCode() {
 
-        return Objects.hash(getId(), getPartyId(), getTopic(), getFilters(), getUrl(), getPubKey(), getPrivKey(), isEnabled(), getRetryPolicyType());
+        return Objects.hash(getId(), getPartyId(), getFilters(), getUrl(), getPubKey(), getPrivKey(), isEnabled(), getRetryPolicyType());
     }
 
     @Override
     public String toString() {
         return "Hook{" +
                 "id=" + id +
-                ", topic=" + topic +
                 ", partyId='" + partyId + '\'' +
+                ", filters=" + filters +
                 ", url='" + url + '\'' +
+                ", pubKey='" + pubKey + '\'' +
+                ", privKey='" + privKey + '\'' +
+                ", enabled=" + enabled +
+                ", retryPolicyType=" + retryPolicyType +
                 '}';
+    }
+
+    public static class WebhookAdditionalFilter {
+        private EventType eventType;
+        private MessageType messageType;
+
+        public WebhookAdditionalFilter() {
+        }
+
+        public WebhookAdditionalFilter(EventType eventType, MessageType messageType) {
+            this.eventType = eventType;
+            this.messageType = messageType;
+        }
+
+        public EventType getEventType() {
+            return eventType;
+        }
+
+        public void setEventType(EventType eventType) {
+            this.eventType = eventType;
+        }
+
+        public MessageType getMessageType() {
+            return messageType;
+        }
+
+        public void setMessageType(MessageType messageType) {
+            this.messageType = messageType;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof WebhookAdditionalFilter)) return false;
+            WebhookAdditionalFilter that = (WebhookAdditionalFilter) o;
+            return getEventType() == that.getEventType() &&
+                    getMessageType() == that.getMessageType();
+        }
+
+        @Override
+        public int hashCode() {
+
+            return Objects.hash(getEventType(), getMessageType());
+        }
     }
 }

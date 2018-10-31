@@ -1,6 +1,6 @@
 package com.rbkmoney.wallets_hooker.dao.impl;
 
-import com.rbkmoney.wallets_hooker.dao.WebhookAdditionalFilter;
+import com.rbkmoney.wallets_hooker.model.Hook;
 
 /**
  * Created by inalarsanukaev on 18.04.17.
@@ -8,27 +8,25 @@ import com.rbkmoney.wallets_hooker.dao.WebhookAdditionalFilter;
 public class AllHookTablesRow {
     private long id;
     private String partyId;
-    private String topic;
     private String url;
     private String pubKey;
     private boolean enabled;
-    private WebhookAdditionalFilter webhookAdditionalFilter;
+    private Hook.WebhookAdditionalFilter webhookAdditionalFilter;
 
-    public AllHookTablesRow(long id, String partyId, String topic, String url, String pubKey, boolean enabled, WebhookAdditionalFilter webhookAdditionalFilter) {
+    public AllHookTablesRow(long id, String partyId, String url, String pubKey, boolean enabled, Hook.WebhookAdditionalFilter webhookAdditionalFilter) {
         this.id = id;
         this.partyId = partyId;
-        this.topic = topic;
         this.url = url;
         this.pubKey = pubKey;
         this.enabled = enabled;
         this.webhookAdditionalFilter = webhookAdditionalFilter;
     }
 
-    public WebhookAdditionalFilter getWebhookAdditionalFilter() {
+    public Hook.WebhookAdditionalFilter getWebhookAdditionalFilter() {
         return webhookAdditionalFilter;
     }
 
-    public void setWebhookAdditionalFilter(WebhookAdditionalFilter webhookAdditionalFilter) {
+    public void setWebhookAdditionalFilter(Hook.WebhookAdditionalFilter webhookAdditionalFilter) {
         this.webhookAdditionalFilter = webhookAdditionalFilter;
     }
 
@@ -46,14 +44,6 @@ public class AllHookTablesRow {
 
     public void setPartyId(String partyId) {
         this.partyId = partyId;
-    }
-
-    public String getTopic() {
-        return topic;
-    }
-
-    public void setTopic(String topic) {
-        this.topic = topic;
     }
 
     public String getUrl() {

@@ -1,6 +1,6 @@
 package com.rbkmoney.wallets_hooker.endpoint;
 
-import com.rbkmoney.damsel.webhooker.WebhookManagerSrv;
+import com.rbkmoney.fistful.webhooker.WebhookManagerSrv;
 import com.rbkmoney.woody.api.event.CompositeServiceEventListener;
 import com.rbkmoney.woody.thrift.impl.http.THServiceBuilder;
 import com.rbkmoney.woody.thrift.impl.http.event.HttpServiceEventLogListener;

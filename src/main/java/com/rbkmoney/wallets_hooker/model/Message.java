@@ -1,15 +1,16 @@
 package com.rbkmoney.wallets_hooker.model;
 
-import com.rbkmoney.swag_wallets_webhook_events.Event;
-
 import java.util.Objects;
 
 /**
  * Created by inalarsanukaev on 20.11.17.
  */
-public class Message {
+public abstract class Message {
     private Long id;
-    private Event event;
+    private EventType eventType;
+    private Long eventId;
+    private String partyId;
+    private String occuredAt;
 
     public Long getId() {
         return id;
@@ -19,12 +20,36 @@ public class Message {
         this.id = id;
     }
 
-    public Event getEvent() {
-        return event;
+    public EventType getEventType() {
+        return eventType;
     }
 
-    public void setEvent(Event event) {
-        this.event = event;
+    public void setEventType(EventType eventType) {
+        this.eventType = eventType;
+    }
+
+    public Long getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(Long eventId) {
+        this.eventId = eventId;
+    }
+
+    public String getPartyId() {
+        return partyId;
+    }
+
+    public void setPartyId(String partyId) {
+        this.partyId = partyId;
+    }
+
+    public String getOccuredAt() {
+        return occuredAt;
+    }
+
+    public void setOccuredAt(String occuredAt) {
+        this.occuredAt = occuredAt;
     }
 
     @Override
@@ -33,12 +58,26 @@ public class Message {
         if (!(o instanceof Message)) return false;
         Message message = (Message) o;
         return Objects.equals(getId(), message.getId()) &&
-                Objects.equals(getEvent(), message.getEvent());
+                getEventType() == message.getEventType() &&
+                Objects.equals(getEventId(), message.getEventId()) &&
+                Objects.equals(getPartyId(), message.getPartyId()) &&
+                Objects.equals(getOccuredAt(), message.getOccuredAt());
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(getId(), getEvent());
+        return Objects.hash(getId(), getEventType(), getEventId(), getPartyId(), getOccuredAt());
+    }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "id=" + id +
+                ", eventType=" + eventType +
+                ", eventId=" + eventId +
+                ", partyId='" + partyId + '\'' +
+                ", occuredAt='" + occuredAt + '\'' +
+                '}';
     }
 }

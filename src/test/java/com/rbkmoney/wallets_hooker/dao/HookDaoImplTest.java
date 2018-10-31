@@ -1,12 +1,12 @@
 package com.rbkmoney.wallets_hooker.dao;
 
-import com.rbkmoney.damsel.webhooker.EventFilter;
-import com.rbkmoney.damsel.webhooker.WebhookParams;
+import com.rbkmoney.fistful.webhooker.EventFilter;
+import com.rbkmoney.fistful.webhooker.WebhookParams;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.Hook;
+import com.rbkmoney.wallets_hooker.model.MessageType;
 import com.rbkmoney.wallets_hooker.utils.ConverterUtils;
-import com.rbkmoney.swag_wallets_webhook_events.Event;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -23,9 +23,6 @@ import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by inalarsanukaev on 08.04.17.
- */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class HookDaoImplTest extends AbstractIntegrationTest {
@@ -37,22 +34,22 @@ public class HookDaoImplTest extends AbstractIntegrationTest {
 
     @Before
     public void setUp() throws Exception {
-        Set<WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_FAILED));
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_CREATED));
+        Set<Hook.WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_FAILED, MessageType.WITHDRAWAL));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_CREATED, MessageType.WITHDRAWAL));
         EventFilter eventFilterByCode = ConverterUtils.convertEventFilter(webhookAdditionalFilters);
         WebhookParams webhookParams = new WebhookParams("123", eventFilterByCode, "https://google.com");
         Hook hook = hookDao.create(ConverterUtils.convertHook(webhookParams));
         String pubKey1 = hook.getPubKey();
         ids.add(hook.getId());
         webhookAdditionalFilters.clear();
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_FAILED));
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_CREATED));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_FAILED, MessageType.WITHDRAWAL));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_CREATED, MessageType.WITHDRAWAL));
         webhookParams = new WebhookParams("999", ConverterUtils.convertEventFilter(webhookAdditionalFilters), "https://yandex.ru");
         hook = hookDao.create(ConverterUtils.convertHook(webhookParams));
         ids.add(hook.getId());
         webhookAdditionalFilters.clear();
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_SUCCEEDED));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_SUCCEEDED, MessageType.WITHDRAWAL));
         webhookParams = new WebhookParams("123", ConverterUtils.convertEventFilter(webhookAdditionalFilters), "https://2ch.hk/b");
         hook = hookDao.create(ConverterUtils.convertHook(webhookParams));
         String pubKey2 = hook.getPubKey();
@@ -74,9 +71,9 @@ public class HookDaoImplTest extends AbstractIntegrationTest {
 
     @Test
     public void testConstraint(){
-        Set<WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_SUCCEEDED));
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_SUCCEEDED));
+        Set<Hook.WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_SUCCEEDED, MessageType.WITHDRAWAL));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_SUCCEEDED, MessageType.WITHDRAWAL));
         WebhookParams webhookParams  = new WebhookParams("123", ConverterUtils.convertEventFilter(webhookAdditionalFilters), "https://2ch.hk/b");
         Hook hook = hookDao.create(ConverterUtils.convertHook(webhookParams));
         ids.add(hook.getId());
@@ -100,11 +97,10 @@ public class HookDaoImplTest extends AbstractIntegrationTest {
         Hook hook = new Hook();
         hook.setPartyId(partyId);
         hook.setUrl(url);
-        hook.setTopic(Event.TopicEnum.WALLETSTOPIC.getValue());
 
-        Set<WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_FAILED));
-        webhookAdditionalFilters.add(new WebhookAdditionalFilter(EventType.WALLET_WITHDRAWAL_SUCCEEDED));
+        Set<Hook.WebhookAdditionalFilter> webhookAdditionalFilters = new HashSet<>();
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_FAILED, MessageType.WITHDRAWAL));
+        webhookAdditionalFilters.add(new Hook.WebhookAdditionalFilter(EventType.WITHDRAWAL_SUCCEEDED, MessageType.WITHDRAWAL));
         hook.setFilters(webhookAdditionalFilters);
 
         return hook;

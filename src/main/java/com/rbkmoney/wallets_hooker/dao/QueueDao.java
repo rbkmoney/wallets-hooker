@@ -2,7 +2,6 @@ package com.rbkmoney.wallets_hooker.dao;
 
 import com.rbkmoney.wallets_hooker.model.Queue;
 import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
-import com.rbkmoney.wallets_hooker.model.WalletsQueue;
 
 import java.util.Collection;
 import java.util.List;

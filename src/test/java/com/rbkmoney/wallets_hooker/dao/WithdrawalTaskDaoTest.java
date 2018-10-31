@@ -1,10 +1,12 @@
 package com.rbkmoney.wallets_hooker.dao;
 
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
-import com.rbkmoney.wallets_hooker.dao.impl.WalletsQueueDao;
-import com.rbkmoney.wallets_hooker.dao.impl.WalletsTaskDao;
+import com.rbkmoney.wallets_hooker.dao.impl.WithdrawalQueueDao;
+import com.rbkmoney.wallets_hooker.dao.impl.WithdrawalTaskDao;
+import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
-import com.rbkmoney.wallets_hooker.model.WalletsQueue;
+import com.rbkmoney.wallets_hooker.model.WithdrawalQueue;
+import com.rbkmoney.wallets_hooker.utils.BuildUtils;
 import com.rbkmoney.wallets_hooker.utils.ConverterUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -26,18 +28,18 @@ import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class WalletsTaskDaoTest extends AbstractIntegrationTest {
+public class WithdrawalTaskDaoTest extends AbstractIntegrationTest {
     @Autowired
-    WalletsTaskDao taskDao;
+    WithdrawalTaskDao taskDao;
 
     @Autowired
-    WalletsQueueDao queueDao;
+    WithdrawalQueueDao queueDao;
 
     @Autowired
     HookDao hookDao;
 
     @Autowired
-    WalletsMessageDao messageDao;
+    WithdrawalMessageDao messageDao;
 
     Long messageId;
     Long hookId;
@@ -45,8 +47,8 @@ public class WalletsTaskDaoTest extends AbstractIntegrationTest {
     @Before
     public void setUp() throws Exception {
         hookId = hookDao.create(HookDaoImplTest.buildHook("partyId", "fake.url")).getId();
-        messageDao.create(ConverterUtils.buildWalletsMessage("WALLET_WITHDRAWAL_SUCCEEDED", "partyId", "walletId", "2016-03-22T06:12:27Z", 123));
-        messageId = messageDao.getAny("walletId").getId();
+        messageDao.create(BuildUtils.buildWithdrawalMessage(EventType.WITHDRAWAL_SUCCEEDED, "partyId", "withdrawalId"));
+        messageId = messageDao.getAny("withdrawalId").getId();
     }
 
     @After
@@ -56,7 +58,7 @@ public class WalletsTaskDaoTest extends AbstractIntegrationTest {
 
     @Test
     public void createDeleteGet() {
-        Map<Long, List<TaskQueuePair<WalletsQueue>>> scheduled = queueDao.getTaskQueuePairsMap(new ArrayList<>());
+        Map<Long, List<TaskQueuePair<WithdrawalQueue>>> scheduled = queueDao.getTaskQueuePairsMap(new ArrayList<>());
         assertEquals(1, scheduled.size());
         taskDao.remove(scheduled.keySet().iterator().next(), messageId);
         assertEquals(0, queueDao.getTaskQueuePairsMap(new ArrayList<>()).size());

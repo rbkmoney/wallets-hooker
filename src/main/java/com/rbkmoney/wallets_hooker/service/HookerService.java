@@ -1,9 +1,9 @@
 package com.rbkmoney.wallets_hooker.service;
 
-import com.rbkmoney.damsel.webhooker.Webhook;
-import com.rbkmoney.damsel.webhooker.WebhookManagerSrv;
-import com.rbkmoney.damsel.webhooker.WebhookNotFound;
-import com.rbkmoney.damsel.webhooker.WebhookParams;
+import com.rbkmoney.fistful.webhooker.Webhook;
+import com.rbkmoney.fistful.webhooker.WebhookManagerSrv;
+import com.rbkmoney.fistful.webhooker.WebhookNotFound;
+import com.rbkmoney.fistful.webhooker.WebhookParams;
 import com.rbkmoney.wallets_hooker.dao.HookDao;
 import com.rbkmoney.wallets_hooker.model.Hook;
 import com.rbkmoney.wallets_hooker.utils.ConverterUtils;

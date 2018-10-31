@@ -5,6 +5,6 @@ import java.util.List;
 
 public interface MessageDao<M> {
     void create(M message) throws DaoException;
-    Long getMaxEventId();
+    Long getLastEventId();
     List<M> getBy(Collection<Long> messageIds) throws DaoException;
 }

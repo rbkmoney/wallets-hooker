@@ -23,20 +23,22 @@ public abstract class MessageSender<M extends Message, Q extends Queue> implemen
     private TaskDao taskDao;
     private Signer signer;
     private PostSender postSender;
+    private MessageConverter<M> messageConverter;
 
-    public MessageSender(MessageSender.QueueStatus<Q> queueStatus, List<M> messages, TaskDao taskDao, Signer signer, PostSender postSender) {
+    public MessageSender(MessageSender.QueueStatus<Q> queueStatus, List<M> messages, TaskDao taskDao, Signer signer, PostSender postSender, MessageConverter<M> messageConverter) {
         this.queueStatus = queueStatus;
         this.messages = messages;
         this.taskDao = taskDao;
         this.signer = signer;
         this.postSender = postSender;
+        this.messageConverter = messageConverter;
     }
 
     @Override
     public MessageSender.QueueStatus<Q> call() {
         try {
             for (M message : messages) {
-                final String messageJson = ConverterUtils.getObjectMapper().writeValueAsString(message.getEvent());
+                final String messageJson = messageConverter.convertToJson(message);
                 final String signature = signer.sign(messageJson, queueStatus.getQueue().getHook().getPrivKey());
                 log.info("Sending message to hook: messageId: {}, {}, {}", message.getId(), queueStatus.getQueue().getHook().getUrl(), messageJson);
                 AbstractMap.SimpleEntry<Integer, String> entry = postSender.doPost(queueStatus.getQueue().getHook().getUrl(), messageJson, signature);

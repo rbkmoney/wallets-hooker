@@ -5,7 +5,7 @@ import java.util.Objects;
 /**
  * Created by inalarsanukaev on 14.11.17.
  */
-public class Queue {
+public abstract class Queue {
     private long id;
     private Hook hook;
     private int failCount;

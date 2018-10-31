@@ -13,7 +13,6 @@ import com.rbkmoney.wallets_hooker.service.PostSender;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import javax.annotation.PreDestroy;
@@ -24,24 +23,26 @@ import java.util.stream.Collectors;
 public abstract class MessageScheduler<M extends Message, Q extends Queue> {
     private final Logger log = LoggerFactory.getLogger(this.getClass());
 
-    private TaskDao taskDao;
-    private QueueDao<Q> queueDao;
-    private MessageDao<M> messageDao;
-    @Autowired
-    private RetryPoliciesService retryPoliciesService;
-    @Autowired
-    private Signer signer;
-    @Autowired
-    private PostSender postSender;
+    private final TaskDao taskDao;
+    private final QueueDao<Q> queueDao;
+    private final MessageDao<M> messageDao;
+    private final MessageConverter<M> messageConverter;
+    private final RetryPoliciesService retryPoliciesService;
+    private final Signer signer;
+    private final PostSender postSender;
 
     private final Set<Long> processedQueues = Collections.synchronizedSet(new HashSet<>());
     private ExecutorService executorService;
 
 
-    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, int numberOfWorkers) {
+    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, MessageConverter<M> messageConverter, RetryPoliciesService retryPoliciesService, Signer signer, PostSender postSender, int numberOfWorkers) {
         this.taskDao = taskDao;
         this.queueDao = queueDao;
         this.messageDao = messageDao;
+        this.messageConverter = messageConverter;
+        this.retryPoliciesService = retryPoliciesService;
+        this.signer = signer;
+        this.postSender = postSender;
         this.executorService = Executors.newFixedThreadPool(numberOfWorkers);
     }
 
@@ -72,10 +73,10 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
                 if (e != null) {
                     messagesForQueue.add(e);
                 } else {
-                    log.error("WalletsMessage with id {} couldn't be null", task.getMessageId());
+                    log.error("WithdrawalMessage with id {} couldn't be null", task.getMessageId());
                 }
             }
-            MessageSender<M, Q> messageSender = getMessageSender(new MessageSender.QueueStatus<>(queuesMap.get(queueId)), messagesForQueue, taskDao, signer, postSender);
+            MessageSender<M, Q> messageSender = getMessageSender(new MessageSender.QueueStatus<>(queuesMap.get(queueId)), messagesForQueue);
             messageSenderList.add(messageSender);
         }
 
@@ -97,7 +98,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
         }
     }
 
-    protected abstract MessageSender<M, Q> getMessageSender(MessageSender.QueueStatus<Q> queueStatus, List<M> messagesForQueue, TaskDao taskDao, Signer signer, PostSender postSender);
+    protected abstract MessageSender<M, Q> getMessageSender(MessageSender.QueueStatus<Q> queueStatus, List<M> messagesForQueue);
 
     //worker should invoke this method when it is done with scheduled messages for hookId
     private void done(Q queue) {

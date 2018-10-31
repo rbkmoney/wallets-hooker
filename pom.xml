@@ -20,17 +20,15 @@
         <project.maintainer>Inal Arsanukaev &lt;i.arsanukaev@rbkmoney.com&gt;</project.maintainer>
         <server.port>8022</server.port>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <postgresql.jdbc.version>9.4.1212</postgresql.jdbc.version>
+        <postgresql.jdbc.version>42.2.5</postgresql.jdbc.version>
         <dockerfile.base.service.tag>22c57470c4fc47161894f036b7cf9d70f42b75f5</dockerfile.base.service.tag>
-        <damsel.version>1.245-6416608-epic</damsel.version>
         <shared.resources.version>0.2.1</shared.resources.version>
-
-        <db.host.name>db-pg-shared</db.host.name>
+        <db.host.name>localhost</db.host.name>
         <db.host.port>5432</db.host.port>
         <db.name>wallets-hooker</db.name>
         <db.url>jdbc:postgresql://${db.host.name}:${db.host.port}/${db.name}</db.url>
-        <db.user>wallets-hooker</db.user>
-        <db.password>wallets-hooker</db.password>
+        <db.user>postgres</db.user>
+        <db.password>postgres</db.password>
         <db.schema>whook</db.schema>
     </properties>
 
@@ -63,7 +61,7 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <version>3.6.0</version>
+            <version>3.11.0</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
@@ -144,17 +142,17 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>eventstock-client</artifactId>
-            <version>1.2.0</version>
+            <version>1.2.2</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
-            <artifactId>damsel</artifactId>
-            <version>${damsel.version}</version>
+            <artifactId>fistful-proto</artifactId>
+            <version>1.5-2bcd761</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-wallets-webhook-events</artifactId>
-            <version>1.0.0-SNAPSHOT</version>
+            <version>1.0.7-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney.logback</groupId>
@@ -205,6 +203,12 @@
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
             <version>1.4.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.benas</groupId>
+            <artifactId>random-beans</artifactId>
+            <version>3.6.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -2,35 +2,37 @@ package com.rbkmoney.wallets_hooker.dao.impl;
 
 import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.HookDao;
-import com.rbkmoney.wallets_hooker.dao.WebhookAdditionalFilter;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.Hook;
+import com.rbkmoney.wallets_hooker.model.MessageType;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcDaoSupport;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class HookDaoImpl implements HookDao {
-    Logger log = LoggerFactory.getLogger(this.getClass());
+@Component
+@DependsOn("dbInitializer")
+public class HookDaoImpl extends NamedParameterJdbcDaoSupport implements HookDao {
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    Signer signer;
+    private final Signer signer;
 
-    private final NamedParameterJdbcTemplate jdbcTemplate;
-
-    public HookDaoImpl(NamedParameterJdbcTemplate jdbcTemplate) {
-        this.jdbcTemplate = jdbcTemplate;
+    public HookDaoImpl(DataSource dataSource, Signer signer) {
+        setDataSource(dataSource);
+        this.signer = signer;
     }
 
     @Override
@@ -50,7 +52,7 @@ public class HookDaoImpl implements HookDao {
         params.addValue("party_id", partyId);
 
         try {
-            List<AllHookTablesRow> allHookTablesRows = jdbcTemplate.query(sql, params, allHookTablesRowRowMapper);
+            List<AllHookTablesRow> allHookTablesRows = getNamedParameterJdbcTemplate().query(sql, params, allHookTablesRowRowMapper);
             List<Hook> result = squashToWebhooks(allHookTablesRows);
             log.debug("getPartyHooks response. Hooks: " + result);
             return result;
@@ -62,33 +64,18 @@ public class HookDaoImpl implements HookDao {
     }
 
     private List<Hook> squashToWebhooks(List<AllHookTablesRow> allHookTablesRows) {
-        List<Hook> result = new ArrayList<>();
-        if (allHookTablesRows == null || allHookTablesRows.isEmpty()) {
-            return result;
-        }
-        final Map<Long, List<AllHookTablesRow>> hookIdToRows = new HashMap<>();
-
-        //grouping by hookId
-        for (AllHookTablesRow row : allHookTablesRows) {
-            final long hookId = row.getId();
-            List<AllHookTablesRow> list = hookIdToRows.computeIfAbsent(hookId, k -> new ArrayList<>());
-            list.add(row);
-        }
-
-        for (long hookId : hookIdToRows.keySet()) {
-            List<AllHookTablesRow> rows = hookIdToRows.get(hookId);
+        Map<Long, List<AllHookTablesRow>> map = allHookTablesRows.stream().collect(Collectors.groupingBy(AllHookTablesRow::getId));
+        return map.entrySet().stream().map(Map.Entry::getValue).map(rows -> {
             Hook hook = new Hook();
-            hook.setId(hookId);
-            hook.setPartyId(rows.get(0).getPartyId());
-            hook.setTopic(rows.get(0).getTopic());
-            hook.setUrl(rows.get(0).getUrl());
-            hook.setPubKey(rows.get(0).getPubKey());
-            hook.setEnabled(rows.get(0).isEnabled());
-            hook.setFilters(rows.stream().map(r -> r.getWebhookAdditionalFilter()).collect(Collectors.toSet()));
-            result.add(hook);
-        }
-
-        return result;
+            AllHookTablesRow row = rows.get(0);
+            hook.setId(row.getId());
+            hook.setPartyId(row.getPartyId());
+            hook.setUrl(row.getUrl());
+            hook.setPubKey(row.getPubKey());
+            hook.setEnabled(row.isEnabled());
+            hook.setFilters(rows.stream().map(AllHookTablesRow::getWebhookAdditionalFilter).collect(Collectors.toSet()));
+            return hook;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -105,10 +92,13 @@ public class HookDaoImpl implements HookDao {
         params.addValue("id", id);
 
         try {
-            List<AllHookTablesRow> allHookTablesRows = jdbcTemplate.query(sql, params, allHookTablesRowRowMapper);
+            List<AllHookTablesRow> allHookTablesRows = getNamedParameterJdbcTemplate().query(sql, params, allHookTablesRowRowMapper);
             List<Hook> result = squashToWebhooks(allHookTablesRows);
             if (result == null || result.isEmpty()) {
                 return null;
+            }
+            if (result.size() > 1) {
+                throw new DaoException("Unexpected size(" + result.size() + ") of query for getHookById(" + id + "), it must be 1.");
             }
             return result.get(0);
         } catch (NestedRuntimeException e) {
@@ -124,16 +114,15 @@ public class HookDaoImpl implements HookDao {
         hook.setPubKey(pubKey);
         hook.setEnabled(true);
 
-        final String sql = "INSERT INTO whook.webhook(party_id, url, topic) " +
-                "VALUES (:party_id, :url, CAST(:topic as whook.message_topic)) RETURNING ID";
+        final String sql = "INSERT INTO whook.webhook(party_id, url) " +
+                "VALUES (:party_id, :url) RETURNING ID";
 
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue("party_id", hook.getPartyId())
-                .addValue("url", hook.getUrl())
-                .addValue("topic", hook.getTopic());
+                .addValue("url", hook.getUrl());
         try {
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
-            int updateCount = jdbcTemplate.update(sql, params, keyHolder);
+            int updateCount = getNamedParameterJdbcTemplate().update(sql, params, keyHolder);
             if (updateCount != 1) {
                 throw new DaoException("Couldn't insert webhook " + hook.getId() + " into table");
             }
@@ -147,18 +136,20 @@ public class HookDaoImpl implements HookDao {
         return hook;
     }
 
-    private void saveHookFilters(long hookId, Collection<WebhookAdditionalFilter> webhookAdditionalFilters) {
+    private void saveHookFilters(long hookId, Collection<Hook.WebhookAdditionalFilter> webhookAdditionalFilters) {
         int size = webhookAdditionalFilters.size();
         List<Map<String, Object>> batchValues = new ArrayList<>(size);
-        for (WebhookAdditionalFilter webhookAdditionalFilter : webhookAdditionalFilters) {
+        for (Hook.WebhookAdditionalFilter webhookAdditionalFilter : webhookAdditionalFilters) {
             MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource("hook_id", hookId)
-                    .addValue("event_type", webhookAdditionalFilter.getEventType().toString());
+                    .addValue("message_type", webhookAdditionalFilter.getMessageType().name())
+                    .addValue("event_type", webhookAdditionalFilter.getEventType().name());
             batchValues.add(mapSqlParameterSource.getValues());
         }
 
-        final String sql = "INSERT INTO whook.webhook_to_events(hook_id, event_type) VALUES (:hook_id, CAST(:event_type AS whook.eventtype))";
+        final String sql = "INSERT INTO whook.webhook_to_events(hook_id, message_type, event_type) " +
+                "VALUES (:hook_id, CAST(:message_type AS whook.message_type), CAST(:event_type AS whook.event_type))";
         try {
-            int updateCount[] = jdbcTemplate.batchUpdate(sql, batchValues.toArray(new Map[size]));
+            int updateCount[] = getNamedParameterJdbcTemplate().batchUpdate(sql, batchValues.toArray(new Map[size]));
             if (updateCount.length != size) {
                 throw new DaoException("Couldn't insert relation between hook and events.");
             }
@@ -172,12 +163,12 @@ public class HookDaoImpl implements HookDao {
     @Transactional
     public void delete(long id) throws DaoException {
         final String sql =
-                " DELETE FROM whook.scheduled_task st USING whook.wallets_queue q WHERE st.queue_id = q.id AND q.hook_id=:id;" +
-                " DELETE FROM whook.wallets_queue where hook_id=:id;" +
+                " DELETE FROM whook.scheduled_task st USING whook.withdrawal_queue q WHERE st.queue_id = q.id AND q.hook_id=:id;" +
+                " DELETE FROM whook.withdrawal_queue where hook_id=:id;" +
                 " DELETE FROM whook.webhook_to_events where hook_id=:id;" +
                 " DELETE FROM whook.webhook where id=:id; ";
         try {
-            jdbcTemplate.update(sql, new MapSqlParameterSource("id", id));
+            getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("id", id));
         } catch (NestedRuntimeException e) {
             throw new DaoException(e);
         }
@@ -196,7 +187,7 @@ public class HookDaoImpl implements HookDao {
         String pubKey = null;
         try {
             KeyHolder keyHolder = new GeneratedKeyHolder();
-            jdbcTemplate.update(sql, params, keyHolder);
+            getNamedParameterJdbcTemplate().update(sql, params, keyHolder);
             pubKey = (String) keyHolder.getKeys().get("pub_key");
         } catch (NestedRuntimeException | NullPointerException | ClassCastException e) {
             log.warn("Fail to createOrGetPubKey security keys for party {} ", partyId,  e);
@@ -209,9 +200,9 @@ public class HookDaoImpl implements HookDao {
     private static RowMapper<AllHookTablesRow> allHookTablesRowRowMapper =
             (rs, i) -> new AllHookTablesRow(rs.getLong("id"),
                     rs.getString("party_id"),
-                    rs.getString("topic"),
                     rs.getString("url"),
                     rs.getString("pub_key"),
                     rs.getBoolean("enabled"),
-                    new WebhookAdditionalFilter(EventType.valueOf(rs.getString("event_type"))));
+                    new Hook.WebhookAdditionalFilter(EventType.valueOf(rs.getString("event_type")),
+                            MessageType.valueOf(rs.getString("message_type"))));
 }
