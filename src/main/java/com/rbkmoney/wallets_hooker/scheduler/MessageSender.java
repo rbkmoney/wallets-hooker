@@ -36,22 +36,23 @@ public abstract class MessageSender<M extends Message, Q extends Queue> implemen
 
     @Override
     public MessageSender.QueueStatus<Q> call() {
+        M currentMessage = null;
         try {
             for (M message : messages) {
+                currentMessage = message;
                 final String messageJson = messageConverter.convertToJson(message);
                 final String signature = signer.sign(messageJson, queueStatus.getQueue().getHook().getPrivKey());
-                log.info("Sending message to hook: messageId: {}, {}, {}", message.getId(), queueStatus.getQueue().getHook().getUrl(), messageJson);
-                AbstractMap.SimpleEntry<Integer, String> entry = postSender.doPost(queueStatus.getQueue().getHook().getUrl(), messageJson, signature);
-                log.info("Response from hook: messageId: {}, code: {}; body: {}", message.getId(), entry.getKey(), entry.getValue());
-                if (entry.getKey() != HttpStatus.SC_OK) {
-                    log.info("Wrong status code {} from merchant, we'll try to resend it. MessageId: {}", entry.getKey(), message.getId());
-                    throw new PostRequestException("Internal server error for message id = " + message.getId());
+                int statusCode = postSender.doPost(queueStatus.getQueue().getHook().getUrl(), message.getId(), messageJson, signature);
+                if (statusCode != HttpStatus.SC_OK) {
+                    String wrongCodeMessage = String.format("Wrong status code: %d from merchant, we'll try to resend it. Message with id: %d %s", statusCode, message.getId(), message);
+                    log.info(wrongCodeMessage);
+                    throw new PostRequestException(wrongCodeMessage);
                 }
                 taskDao.remove(queueStatus.getQueue().getId(), message.getId()); //required after message is sent
             }
             queueStatus.setSuccess(true);
         } catch (Exception e) {
-            log.warn("Couldn't send message to hook {}. We'll try to resend it", queueStatus.getQueue().getHook(), e);
+            log.warn("Couldn't send message with id {} {} to hook {}. We'll try to resend it", currentMessage.getId(), currentMessage, queueStatus.getQueue().getHook(), e);
             queueStatus.setSuccess(false);
         }
         return queueStatus;

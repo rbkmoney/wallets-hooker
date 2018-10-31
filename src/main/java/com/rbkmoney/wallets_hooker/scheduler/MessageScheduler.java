@@ -26,23 +26,16 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
     private final TaskDao taskDao;
     private final QueueDao<Q> queueDao;
     private final MessageDao<M> messageDao;
-    private final MessageConverter<M> messageConverter;
     private final RetryPoliciesService retryPoliciesService;
-    private final Signer signer;
-    private final PostSender postSender;
-
     private final Set<Long> processedQueues = Collections.synchronizedSet(new HashSet<>());
     private ExecutorService executorService;
 
 
-    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, MessageConverter<M> messageConverter, RetryPoliciesService retryPoliciesService, Signer signer, PostSender postSender, int numberOfWorkers) {
+    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, RetryPoliciesService retryPoliciesService, int numberOfWorkers) {
         this.taskDao = taskDao;
         this.queueDao = queueDao;
         this.messageDao = messageDao;
-        this.messageConverter = messageConverter;
         this.retryPoliciesService = retryPoliciesService;
-        this.signer = signer;
-        this.postSender = postSender;
         this.executorService = Executors.newFixedThreadPool(numberOfWorkers);
     }
 

@@ -20,10 +20,7 @@ import java.util.List;
 public class WithdrawalMessageScheduler extends MessageScheduler<WithdrawalMessage, WithdrawalQueue> {
 
     private final WithdrawalTaskDao taskDao;
-    private final WithdrawalQueueDao queueDao;
-    private final WithdrawalMessageDao messageDao;
     private final WithdrawalMessageConverter converter;
-    private final RetryPoliciesService retryPoliciesService;
     private final Signer signer;
     private final PostSender postSender;
 
@@ -35,16 +32,12 @@ public class WithdrawalMessageScheduler extends MessageScheduler<WithdrawalMessa
                                       Signer signer,
                                       PostSender postSender,
                                       @Value("${message.sender.number}") int numberOfWorkers) {
-        super(taskDao, queueDao, messageDao, converter, retryPoliciesService, signer, postSender, numberOfWorkers);
+        super(taskDao, queueDao, messageDao, retryPoliciesService, numberOfWorkers);
         this.taskDao = taskDao;
-        this.queueDao = queueDao;
-        this.messageDao = messageDao;
         this.converter = converter;
-        this.retryPoliciesService = retryPoliciesService;
         this.signer = signer;
         this.postSender = postSender;
     }
-
 
     @Override
     protected MessageSender<WithdrawalMessage, WithdrawalQueue> getMessageSender(MessageSender.QueueStatus<WithdrawalQueue> queueStatus, List<WithdrawalMessage> messagesForQueue) {
