@@ -20,7 +20,7 @@ public abstract class AbstractTaskDao extends NamedParameterJdbcDaoSupport imple
 
     @Override
     public void remove(long queueId, long messageId) throws DaoException {
-        final String sql = "DELETE FROM whook.scheduled_task where queue_id=:queue_id and message_id=:message_id and message_type=CAST(:message_type as whook.message_topic)";
+        final String sql = "DELETE FROM whook.scheduled_task where queue_id=:queue_id and message_id=:message_id and message_type=CAST(:message_type as whook.message_type)";
         try {
             getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("queue_id", queueId)
                     .addValue("message_id", messageId)
@@ -34,7 +34,7 @@ public abstract class AbstractTaskDao extends NamedParameterJdbcDaoSupport imple
 
     @Override
     public void removeAll(long queueId) throws DaoException {
-        final String sql = "DELETE FROM whook.scheduled_task where queue_id=:queue_id and message_type=CAST(:message_type as whook.message_topic)";
+        final String sql = "DELETE FROM whook.scheduled_task where queue_id=:queue_id and message_type=CAST(:message_type as whook.message_type)";
         try {
             getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("queue_id", queueId).addValue("message_type", getMessageType()));
         } catch (NestedRuntimeException e) {

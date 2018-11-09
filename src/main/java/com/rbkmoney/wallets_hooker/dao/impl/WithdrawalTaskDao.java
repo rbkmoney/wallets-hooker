@@ -3,8 +3,6 @@ package com.rbkmoney.wallets_hooker.dao.impl;
 import com.rbkmoney.wallets_hooker.dao.AbstractTaskDao;
 import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.model.MessageType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,8 +14,6 @@ import javax.sql.DataSource;
 @DependsOn("dbInitializer")
 public class WithdrawalTaskDao extends AbstractTaskDao {
 
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-
     public WithdrawalTaskDao(DataSource dataSource) {
         super(dataSource);
     }
@@ -28,7 +24,7 @@ public class WithdrawalTaskDao extends AbstractTaskDao {
     }
 
     @Override
-    public void create(long messageId) throws DaoException {
+    public int createByMessageId(long messageId) throws DaoException {
         final String sql =
                 " insert into whook.scheduled_task(message_id, queue_id, message_type)" +
                         " select m.id, q.id, CAST(:message_type as whook.message_type)" +
@@ -40,12 +36,10 @@ public class WithdrawalTaskDao extends AbstractTaskDao {
                         " and m.event_type = wte.event_type " +
                         " ON CONFLICT (message_id, queue_id, message_type) DO NOTHING";
         try {
-            int updateCount = getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("message_id", messageId)
+            return getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("message_id", messageId)
                     .addValue("message_type", getMessageType()));
-            log.info("Created tasks count={} for messageId={}", updateCount, messageId);
         } catch (NestedRuntimeException e) {
-            log.error("Fail to createByMessageId tasks for messages.", e);
-            throw new DaoException(e);
+            throw new DaoException("Error to create task by messageId " + messageId, e);
         }
     }
 }

@@ -23,7 +23,6 @@ import java.util.stream.Collectors;
 @Component
 @DependsOn("dbInitializer")
 public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements QueueDao<WithdrawalQueue> {
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
 
     @Autowired
     private RetryPoliciesService retryPoliciesService;
@@ -53,7 +52,7 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
     };
 
     @Override
-    public void createByMessageId(long messageId) throws DaoException {
+    public int createByMessageId(long messageId) throws DaoException {
         final String sql =
                 " insert into whook.withdrawal_queue(hook_id, withdrawal_id)" +
                 " select w.id , m.withdrawal_id" +
@@ -66,10 +65,9 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
         try {
             int count = getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("id", messageId)
                     .addValue("message_type", getMessageType()));
-            log.info("Created {} queues for messageId {}", count, messageId);
+            return count;
         } catch (NestedRuntimeException e) {
-            log.error("Fail to createByMessageId queue {}", messageId, e);
-            throw new DaoException(e);
+            throw new DaoException("Error to create queue by messageId " + messageId, e);
         }
     }
 
@@ -91,7 +89,7 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
         try {
             return splitByQueue(getNamedParameterJdbcTemplate().query(sql, params, queueWithPolicyRowMapper));
         } catch (NestedRuntimeException e) {
-            throw new DaoException(e);
+            throw new DaoException("Error to get task queue pairs", e);
         }
     }
 
@@ -111,10 +109,8 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
             RetryPolicy policy = retryPoliciesService.getRetryPolicyByType(retryPolicyType);
             MapSqlParameterSource paramSource = policy.buildParamSource(queue);
             getNamedParameterJdbcTemplate().update(sql, paramSource);
-            log.info("Record in table 'withdrawal_queue' with id {} updated.", queue.getId());
         } catch (NestedRuntimeException e) {
-            log.warn("Fail to update withdrawal_queue with id {} ", queue.getId(), e);
-            throw new DaoException(e);
+            throw new DaoException("Error to update withdrawal_queue with id " + queue.getId(), e);
         }
     }
 
@@ -124,8 +120,7 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
         try {
             getNamedParameterJdbcTemplate().update(sql, new MapSqlParameterSource("id", id));
         } catch (NestedRuntimeException e) {
-            log.error("Fail to disable queue: {}", id, e);
-            throw new DaoException(e);
+            throw new DaoException("Error to disable queue with id " + id, e);
         }
     }
 

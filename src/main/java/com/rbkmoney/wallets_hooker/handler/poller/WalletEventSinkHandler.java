@@ -29,7 +29,7 @@ public class WalletEventSinkHandler implements EventHandler<SinkEvent> {
         try {
             handleEvents(sinkEvent, sinkEvent.getPayload());
         } catch (RuntimeException e) {
-            log.error("Error when polling wallet event with id={}", sinkEvent.getPayload().getId(), e);
+            log.error("Error when polling wallet event with id={}", sinkEvent.getId(), e);
             return EventAction.DELAYED_RETRY;
         }
         return EventAction.CONTINUE;

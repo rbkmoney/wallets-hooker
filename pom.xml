@@ -141,13 +141,13 @@
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
-            <artifactId>eventstock-client</artifactId>
-            <version>1.2.2</version>
+            <artifactId>eventstock-client-fistful</artifactId>
+            <version>1.2.3</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>fistful-proto</artifactId>
-            <version>1.5-2bcd761</version>
+            <version>1.5-cd93749</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>

@@ -4,8 +4,6 @@ import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.WithdrawalMessageDao;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.WithdrawalMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -23,10 +21,6 @@ import java.util.List;
 @Component
 @DependsOn("dbInitializer")
 public class WithdrawalMessageDaoImpl extends NamedParameterJdbcDaoSupport implements WithdrawalMessageDao {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
-
-    private final WithdrawalQueueDao queueDao;
-    private final WithdrawalTaskDao taskDao;
 
     public static final String ID = "id";
     public static final String EVENT_TYPE = "event_type";
@@ -62,29 +56,25 @@ public class WithdrawalMessageDaoImpl extends NamedParameterJdbcDaoSupport imple
         return message;
     };
 
-    public WithdrawalMessageDaoImpl(DataSource dataSource, WithdrawalQueueDao queueDao, WithdrawalTaskDao taskDao) {
+    public WithdrawalMessageDaoImpl(DataSource dataSource) {
         setDataSource(dataSource);
-        this.queueDao = queueDao;
-        this.taskDao = taskDao;
     }
 
     @Override
     public WithdrawalMessage getAny(String withdrawalId) throws DaoException {
-        WithdrawalMessage result;
         final String sql = "SELECT * FROM whook.withdrawal_message WHERE withdrawal_id =:withdrawal_id ORDER BY id DESC LIMIT 1";
         MapSqlParameterSource params = new MapSqlParameterSource(WITHDRAWAL_ID, withdrawalId);
         try {
-            result = getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
+            return getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
         } catch (EmptyResultDataAccessException e) {
             throw new DaoException("WithdrawalMessage with withdrawalId " + withdrawalId + " not found");
         } catch (NestedRuntimeException e) {
-            throw new DaoException("WithdrawalMessageDaoImpl.getAny error with id " + withdrawalId, e);
+            throw new DaoException("Error to get WithdrawalMessage with withdrawalId " + withdrawalId, e);
         }
-        return result;
     }
 
     @Override
-    public void create(WithdrawalMessage message) throws DaoException {
+    public Long create(WithdrawalMessage message) throws DaoException {
         final String sql =
                 "INSERT INTO whook.withdrawal_message (event_type, event_id,  party_id, occured_at,  " +
                         "withdrawal_id, withdrawal_created_at, withdrawal_wallet_id, withdrawal_destination_id, " +
@@ -111,12 +101,9 @@ public class WithdrawalMessageDaoImpl extends NamedParameterJdbcDaoSupport imple
         try {
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
             getNamedParameterJdbcTemplate().update(sql, params, keyHolder);
-            message.setId(keyHolder.getKey().longValue());
-            log.info("WithdrawalMessage {} saved to db.", message);
-            queueDao.createByMessageId(message.getId());
-            taskDao.create(message.getId());
+            return keyHolder.getKey().longValue();
         } catch (NestedRuntimeException e) {
-            throw new DaoException("Couldn't createByMessageId message with withdrawalId "+ message.getWithdrawalId(), e);
+            throw new DaoException("Error to create WithdrawalMessage with withdrawalId " + message.getWithdrawalId(), e);
         }
     }
 
@@ -135,10 +122,9 @@ public class WithdrawalMessageDaoImpl extends NamedParameterJdbcDaoSupport imple
         final String sql = "SELECT * FROM whook.withdrawal_message WHERE id in (:ids)";
         try {
             List<WithdrawalMessage> messagesFromDb = getNamedParameterJdbcTemplate().query(sql, new MapSqlParameterSource("ids", messageIds), messageRowMapper);
-            log.debug("messagesFromDb {}", messagesFromDb);
             return messagesFromDb;
         }  catch (NestedRuntimeException e) {
-            throw new DaoException("WithdrawalMessageDaoImpl.getByIds error", e);
+            throw new DaoException("Error to get list of withdrawal messages by ids " + messageIds, e);
         }
     }
 }

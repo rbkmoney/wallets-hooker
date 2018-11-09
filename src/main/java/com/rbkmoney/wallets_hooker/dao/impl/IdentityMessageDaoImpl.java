@@ -4,8 +4,6 @@ import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.IdentityMessageDao;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.IdentityMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,7 +22,6 @@ import java.util.List;
 @Component
 @DependsOn("dbInitializer")
 public class IdentityMessageDaoImpl extends NamedParameterJdbcDaoSupport implements IdentityMessageDao {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public static final String ID = "id";
     public static final String EVENT_TYPE = "event_type";
@@ -51,40 +48,37 @@ public class IdentityMessageDaoImpl extends NamedParameterJdbcDaoSupport impleme
 
     @Override
     public IdentityMessage getAny(String identityId) throws DaoException {
-        IdentityMessage result = null;
         final String sql = "SELECT * FROM whook.identity_message WHERE identity_id =:identity_id ORDER BY id DESC LIMIT 1";
         MapSqlParameterSource params = new MapSqlParameterSource(IDENTITY_ID, identityId);
         try {
-            result = getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
+            return getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
         } catch (EmptyResultDataAccessException e) {
-            log.warn("IdentityMessage with id {} not exist!", identityId);
+            throw new DaoException("IdentityMessage with identityId " + identityId + " not found!", e);
         } catch (NestedRuntimeException e) {
-            throw new DaoException("IdentityMessageDaoImpl.getAny error with identityId " + identityId, e);
+            throw new DaoException("Error to get IdentityMessage with identityId " + identityId, e);
         }
-        return result;
     }
 
     @Override
     @Transactional
-    public void create(IdentityMessage message) throws DaoException {
+    public Long create(IdentityMessage message) throws DaoException {
         final String sql =
                 "INSERT INTO whook.identity_message (event_type, event_id,  party_id, occured_at, identity_id) " +
-                        "VALUES (CAST(:event_type as whook.EventType), :event_id,  :party_id, :occured_at, :identity_id) " +
+                        "VALUES (CAST(:event_type as whook.event_type), :event_id,  :party_id, :occured_at, :identity_id) " +
                         "RETURNING id";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(EVENT_TYPE, message.getEventType().name())
                 .addValue(EVENT_ID, message.getEventId())
                 .addValue(PARTY_ID, message.getPartyId())
                 .addValue(OCCURED_AT, message.getOccuredAt())
-                .addValue(IDENTITY_ID, message.getId())
+                .addValue(IDENTITY_ID, message.getIdentityId())
                 ;
         try {
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
             getNamedParameterJdbcTemplate().update(sql, params, keyHolder);
-            message.setId(keyHolder.getKey().longValue());
-            log.info("IdentityMessage {} saved to db.", message);
+            return keyHolder.getKey().longValue();
         } catch (NestedRuntimeException e) {
-            throw new DaoException("Couldn't createByMessageId message with identityId "+ message.getIdentityId(), e);
+            throw new DaoException("Error to create IdentityMessage with identityId "+ message.getIdentityId(), e);
         }
     }
 
@@ -103,10 +97,9 @@ public class IdentityMessageDaoImpl extends NamedParameterJdbcDaoSupport impleme
         final String sql = "SELECT * FROM whook.identity_message WHERE id in (:ids)";
         try {
             List<IdentityMessage> messagesFromDb = getNamedParameterJdbcTemplate().query(sql, new MapSqlParameterSource("ids", messageIds), messageRowMapper);
-            log.debug("messagesFromDb {}", messagesFromDb);
             return messagesFromDb;
         }  catch (NestedRuntimeException e) {
-            throw new DaoException("IdentityMessageDaoImpl.getByIds error", e);
+            throw new DaoException("Error to get list of IdentityMessage with ids " + messageIds, e);
         }
     }
 }

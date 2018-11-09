@@ -85,7 +85,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
                         fail(queueStatus.getQueue());
                     }
                 } catch (ExecutionException e) {
-                    log.error("Unexpected error when get queue");
+                    log.error("Unexpected error when get queue", e);
                 }
             }
         }
@@ -99,6 +99,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
         if (queue.isFailed()) {
             queue.resetRetries();
             queueDao.updateRetries(queue);
+            log.info("Record in queue table  with id {} was updated.", queue.getId());
         }
     }
 
@@ -112,6 +113,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
             log.warn("Queue {} was disabled according to retry policy.", queue.getId());
         }
         queueDao.updateRetries(queue);
+        log.info("Record in queue table  with id {} was updated.", queue.getId());
     }
 
     @PreDestroy

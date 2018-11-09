@@ -24,12 +24,8 @@ public class EventSinkPollerConfig {
             @Value("${wallet.polling.retryDelay}") int retryDelay,
             @Value("${wallet.polling.maxPoolSize}") int maxPoolSize
     ) throws IOException {
-        return new PollingEventPublisherBuilder() {
-            @Override
-            protected ServiceAdapter createServiceAdapter(ClientBuilder clientBuilder) {
-                return FistfulServiceAdapter.buildWalletAdapter(clientBuilder);
-            }
-        }
+        return new FistfulPollingEventPublisherBuilder()
+                .withWalletServiceAdapter()
                 .withURI(resource.getURI())
                 .withEventHandler(walletEventSinkHandler)
                 .withMaxPoolSize(maxPoolSize)
@@ -46,12 +42,8 @@ public class EventSinkPollerConfig {
             @Value("${identity.polling.retryDelay}") int retryDelay,
             @Value("${identity.polling.maxPoolSize}") int maxPoolSize
     ) throws IOException {
-        return new PollingEventPublisherBuilder() {
-            @Override
-            protected ServiceAdapter createServiceAdapter(ClientBuilder clientBuilder) {
-                return FistfulServiceAdapter.buildIdentityAdapter(clientBuilder);
-            }
-        }
+        return new FistfulPollingEventPublisherBuilder()
+                .withIdentityServiceAdapter()
                 .withURI(resource.getURI())
                 .withEventHandler(identityEventSinkHandler)
                 .withMaxPoolSize(maxPoolSize)
@@ -68,12 +60,8 @@ public class EventSinkPollerConfig {
             @Value("${withdrawal.polling.retryDelay}") int retryDelay,
             @Value("${withdrawal.polling.maxPoolSize}") int maxPoolSize
     ) throws IOException {
-        return new PollingEventPublisherBuilder() {
-            @Override
-            protected ServiceAdapter createServiceAdapter(ClientBuilder clientBuilder) {
-                return FistfulServiceAdapter.buildWithdrawalAdapter(clientBuilder);
-            }
-        }
+        return new FistfulPollingEventPublisherBuilder()
+                .withWithdrawalServiceAdapter()
                 .withURI(resource.getURI())
                 .withEventHandler(withdrawalEventSinkHandler)
                 .withMaxPoolSize(maxPoolSize)

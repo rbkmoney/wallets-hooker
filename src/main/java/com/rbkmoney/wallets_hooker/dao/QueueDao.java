@@ -11,7 +11,7 @@ import java.util.Map;
  * Created by inalarsanukaev on 14.11.17.
  */
 public interface QueueDao<Q extends Queue> {
-    void createByMessageId(long messageId) throws DaoException;
+    int createByMessageId(long messageId) throws DaoException;
     Map<Long, List<TaskQueuePair<Q>>> getTaskQueuePairsMap(Collection<Long> ids);
     void updateRetries(Q queue);
     void disable(long id);

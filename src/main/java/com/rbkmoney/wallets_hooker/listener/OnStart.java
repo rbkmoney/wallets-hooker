@@ -26,6 +26,9 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
     private final IdentityMessageDao identityMessageDao;
     private final WithdrawalMessageDao withdrawalMessageDao;
 
+    @Value("${withdrawal.polling.lastEventId}")
+    private Long withdrawalLastEventId;
+
     @Value("${hg.pollingEnabled}")
     private boolean pollingEnabled;
 
@@ -45,7 +48,11 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
         if (pollingEnabled) {
             identityEventPublisher.subscribe(buildSubscriberConfig(Optional.ofNullable(identityMessageDao.getLastEventId())));
             walletEventPublisher.subscribe(buildSubscriberConfig(Optional.ofNullable(walletMessageDao.getLastEventId())));
-            withdrawalEventPublisher.subscribe(buildSubscriberConfig(Optional.ofNullable(withdrawalMessageDao.getLastEventId())));
+            Long lastEventId = withdrawalMessageDao.getLastEventId();
+            if (lastEventId == null) {
+                lastEventId = withdrawalLastEventId;
+            }
+            withdrawalEventPublisher.subscribe(buildSubscriberConfig(Optional.ofNullable(lastEventId)));
         }
     }
 

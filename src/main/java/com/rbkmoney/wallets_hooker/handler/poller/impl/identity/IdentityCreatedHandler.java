@@ -9,10 +9,14 @@ import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.wallets_hooker.dao.IdentityMessageDao;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.IdentityMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class IdentityCreatedHandler extends AbstractIdentityEventHandler {
+
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final IdentityMessageDao messageDao;
 
@@ -27,10 +31,13 @@ public class IdentityCreatedHandler extends AbstractIdentityEventHandler {
     public void handle(Change change, SinkEvent event) {
         IdentityMessage message = new IdentityMessage();
         message.setEventType(EventType.IDENTITY_CREATED);
-        message.setEventId(event.getPayload().getId());
+        message.setEventId(event.getId());
         message.setOccuredAt(event.getPayload().getOccuredAt());
         message.setIdentityId(event.getSource());
-        messageDao.create(message);
+        message.setPartyId(change.getCreated().getParty());
+        log.info("Start handling identity created, identityId={}", event.getSource());
+        Long messageId = messageDao.create(message);
+        log.info("Finish handling identity created, identityId={}, messageId={} saved to db.", event.getSource(), messageId);
     }
 
     @Override

@@ -157,5 +157,13 @@ public class Hook {
 
             return Objects.hash(getEventType(), getMessageType());
         }
+
+        @Override
+        public String toString() {
+            return "WebhookAdditionalFilter{" +
+                    "eventType=" + eventType +
+                    ", messageType=" + messageType +
+                    '}';
+        }
     }
 }

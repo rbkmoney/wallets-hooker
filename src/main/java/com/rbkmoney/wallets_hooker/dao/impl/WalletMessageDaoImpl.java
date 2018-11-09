@@ -4,8 +4,6 @@ import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.WalletMessageDao;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.WalletMessage;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -24,7 +22,6 @@ import java.util.List;
 @Component
 @DependsOn("dbInitializer")
 public class WalletMessageDaoImpl extends NamedParameterJdbcDaoSupport implements WalletMessageDao {
-    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     public static final String ID = "id";
     public static final String EVENT_TYPE = "event_type";
@@ -52,25 +49,23 @@ public class WalletMessageDaoImpl extends NamedParameterJdbcDaoSupport implement
 
     @Override
     public WalletMessage getAny(String walletId) throws DaoException {
-        WalletMessage result = null;
         final String sql = "SELECT * FROM whook.wallet_message WHERE wallet_id =:wallet_id ORDER BY id DESC LIMIT 1";
         MapSqlParameterSource params = new MapSqlParameterSource(WALLET_ID, walletId);
         try {
-            result = getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
+            return getNamedParameterJdbcTemplate().queryForObject(sql, params, messageRowMapper);
         } catch (EmptyResultDataAccessException e) {
             throw new DaoException("WalletMessage with walletId " + walletId + " not found.");
         } catch (NestedRuntimeException e) {
-            throw new DaoException("WalletMessageDaoImpl.getAny error with walletId " + walletId, e);
+            throw new DaoException("Error to get WalletMessage with walletId " + walletId, e);
         }
-        return result;
     }
 
     @Override
     @Transactional
-    public void create(WalletMessage message) throws DaoException {
+    public Long create(WalletMessage message) throws DaoException {
         final String sql =
                 "INSERT INTO whook.wallet_message (event_type, event_id,  party_id, occured_at, wallet_id, identity_id) " +
-                        "VALUES (CAST(:event_type as whook.EventType), :event_id,  :party_id, :occured_at, :wallet_id, :identity_id) " +
+                        "VALUES (CAST(:event_type as whook.event_type), :event_id,  :party_id, :occured_at, :wallet_id, :identity_id) " +
                         "RETURNING id";
         MapSqlParameterSource params = new MapSqlParameterSource()
                 .addValue(EVENT_TYPE, message.getEventType().name())
@@ -78,15 +73,14 @@ public class WalletMessageDaoImpl extends NamedParameterJdbcDaoSupport implement
                 .addValue(PARTY_ID, message.getPartyId())
                 .addValue(OCCURED_AT, message.getOccuredAt())
                 .addValue(WALLET_ID, message.getWalletId())
-                .addValue(IDENTITY_ID, message.getId())
+                .addValue(IDENTITY_ID, message.getIdentityId())
                 ;
         try {
             GeneratedKeyHolder keyHolder = new GeneratedKeyHolder();
             getNamedParameterJdbcTemplate().update(sql, params, keyHolder);
-            message.setId(keyHolder.getKey().longValue());
-            log.info("WalletMessage {} saved to db.", message);
+            return keyHolder.getKey().longValue();
         } catch (NestedRuntimeException e) {
-            throw new DaoException("Couldn't createByMessageId message with walletId "+ message.getWalletId(), e);
+            throw new DaoException("Error to create WalletMessage with walletId " + message.getWalletId(), e);
         }
     }
 
@@ -105,10 +99,9 @@ public class WalletMessageDaoImpl extends NamedParameterJdbcDaoSupport implement
         final String sql = "SELECT * FROM whook.wallet_message WHERE id in (:ids)";
         try {
             List<WalletMessage> messagesFromDb = getNamedParameterJdbcTemplate().query(sql, new MapSqlParameterSource("ids", messageIds), messageRowMapper);
-            log.debug("messagesFromDb {}", messagesFromDb);
             return messagesFromDb;
         }  catch (NestedRuntimeException e) {
-            throw new DaoException("WalletMessageDaoImpl.getByIds error", e);
+            throw new DaoException("Error to get list of WalletMessage with ids " + messageIds, e);
         }
     }
 }

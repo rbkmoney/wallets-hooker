@@ -19,18 +19,20 @@ public class ConverterUtils {
         eventFilter.setTypes(eventTypes);
         for (Hook.WebhookAdditionalFilter webhookAdditionalFilter : webhookAdditionalFilters) {
             EventType eventTypeCode = webhookAdditionalFilter.getEventType();
-            switch (eventTypeCode) {
-                case WITHDRAWAL_CREATED:
-                    eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.started(new WithdrawalStarted())));
-                    break;
-                case WITHDRAWAL_SUCCEEDED:
-                    eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.succeeded(new WithdrawalSucceeded())));
-                    break;
-                case WITHDRAWAL_FAILED:
-                    eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.failed(new WithdrawalFailed())));
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unknown event code " + eventTypeCode + "; must be one of these: " + Arrays.toString(EventType.values()));
+            if (webhookAdditionalFilter.getMessageType() == MessageType.WITHDRAWAL) {
+                switch (eventTypeCode) {
+                    case WITHDRAWAL_CREATED:
+                        eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.started(new WithdrawalStarted())));
+                        break;
+                    case WITHDRAWAL_SUCCEEDED:
+                        eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.succeeded(new WithdrawalSucceeded())));
+                        break;
+                    case WITHDRAWAL_FAILED:
+                        eventTypes.add(com.rbkmoney.fistful.webhooker.EventType.withdrawal(WithdrawalEventType.failed(new WithdrawalFailed())));
+                        break;
+                    default:
+                        throw new UnsupportedOperationException("Unknown event code " + eventTypeCode + "; must be one of these: " + Arrays.toString(EventType.values()));
+                }
             }
         }
         return eventFilter;
@@ -41,7 +43,6 @@ public class ConverterUtils {
         Set<com.rbkmoney.fistful.webhooker.EventType> eventTypes = eventFilter.getTypes();
         for (com.rbkmoney.fistful.webhooker.EventType eventType : eventTypes) {
             Hook.WebhookAdditionalFilter webhookAdditionalFilter = new Hook.WebhookAdditionalFilter();
-            eventTypeCodeSet.add(webhookAdditionalFilter);
             if (eventType.isSetWithdrawal()) {
                 WithdrawalEventType withdrawal = eventType.getWithdrawal();
                 if (withdrawal.isSetStarted()) {
@@ -53,6 +54,7 @@ public class ConverterUtils {
                 }
                 webhookAdditionalFilter.setMessageType(MessageType.WITHDRAWAL);
             }
+            eventTypeCodeSet.add(webhookAdditionalFilter);
         }
         return eventTypeCodeSet;
     }

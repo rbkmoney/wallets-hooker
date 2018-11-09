@@ -9,10 +9,14 @@ import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.wallets_hooker.dao.WalletMessageDao;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.WalletMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WalletCreatedHandler extends AbstractWalletEventHandler {
+
+    private Logger log = LoggerFactory.getLogger(this.getClass());
 
     private final WalletMessageDao messageDao;
 
@@ -27,10 +31,12 @@ public class WalletCreatedHandler extends AbstractWalletEventHandler {
     public void handle(Change change, SinkEvent event) {
         WalletMessage message = new WalletMessage();
         message.setEventType(EventType.WALLET_CREATED);
-        message.setEventId(event.getPayload().getId());
+        message.setEventId(event.getId());
         message.setOccuredAt(event.getPayload().getOccuredAt());
         message.setWalletId(event.getSource());
-        messageDao.create(message);
+        log.info("Start handling wallet created, walletId={}", event.getSource());
+        Long messageId = messageDao.create(message);
+        log.info("Finish handling wallet created, walletId={}, messageId={} saved to db.", event.getSource(), messageId);
     }
 
     @Override
