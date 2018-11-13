@@ -4,10 +4,7 @@ import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 

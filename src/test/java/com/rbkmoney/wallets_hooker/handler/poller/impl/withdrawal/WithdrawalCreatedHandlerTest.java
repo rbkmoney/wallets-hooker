@@ -8,23 +8,16 @@ import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.WalletMessageDao;
-import com.rbkmoney.wallets_hooker.model.IdentityMessage;
 import com.rbkmoney.wallets_hooker.model.WalletMessage;
-import javafx.scene.control.TextFormatter;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
-import static io.github.benas.randombeans.api.EnhancedRandom.randomListOf;
-import static org.junit.Assert.*;
 import static org.mockito.Matchers.any;
 
 public class WithdrawalCreatedHandlerTest extends AbstractIntegrationTest {

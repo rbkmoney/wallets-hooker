@@ -1,8 +1,9 @@
 package com.rbkmoney.wallets_hooker.utils;
 
 import com.rbkmoney.fistful.webhooker.*;
-import com.rbkmoney.wallets_hooker.model.*;
 import com.rbkmoney.wallets_hooker.model.EventType;
+import com.rbkmoney.wallets_hooker.model.Hook;
+import com.rbkmoney.wallets_hooker.model.MessageType;
 import org.junit.Test;
 
 import java.util.*;

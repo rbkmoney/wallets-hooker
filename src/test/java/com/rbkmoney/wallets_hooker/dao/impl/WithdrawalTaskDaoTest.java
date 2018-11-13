@@ -3,20 +3,21 @@ package com.rbkmoney.wallets_hooker.dao.impl;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.HookDao;
 import com.rbkmoney.wallets_hooker.dao.WithdrawalMessageDao;
-import com.rbkmoney.wallets_hooker.model.*;
+import com.rbkmoney.wallets_hooker.model.EventType;
+import com.rbkmoney.wallets_hooker.model.Hook;
+import com.rbkmoney.wallets_hooker.model.MessageType;
+import com.rbkmoney.wallets_hooker.model.WithdrawalMessage;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class WithdrawalTaskDaoTest extends AbstractIntegrationTest {
 

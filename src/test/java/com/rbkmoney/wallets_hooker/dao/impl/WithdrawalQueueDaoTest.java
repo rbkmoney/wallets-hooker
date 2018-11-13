@@ -7,17 +7,14 @@ import com.rbkmoney.wallets_hooker.model.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Instant;
 import java.util.*;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 public class WithdrawalQueueDaoTest extends AbstractIntegrationTest {
 

@@ -1,7 +1,10 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.wallet;
 
 import com.rbkmoney.fistful.account.Account;
-import com.rbkmoney.fistful.wallet.*;
+import com.rbkmoney.fistful.wallet.AccountChange;
+import com.rbkmoney.fistful.wallet.Change;
+import com.rbkmoney.fistful.wallet.Event;
+import com.rbkmoney.fistful.wallet.SinkEvent;
 import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.IdentityMessageDao;
 import com.rbkmoney.wallets_hooker.dao.WalletMessageDao;
@@ -9,14 +12,11 @@ import com.rbkmoney.wallets_hooker.model.IdentityMessage;
 import com.rbkmoney.wallets_hooker.model.WalletMessage;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.mockito.Matchers.any;
