@@ -1,5 +1,5 @@
 #!groovy
-fillQueue('wallets-hooker', 'java-maven') {
+build('wallets-hooker', 'java-maven') {
     checkoutRepo()
 
     def serviceName = env.REPO_NAME
@@ -23,7 +23,7 @@ fillQueue('wallets-hooker', 'java-maven') {
     def imgShortName = 'rbkmoney/' + "${serviceName}" + ':' + '$COMMIT_ID';
     getCommitId()
     runStage('Build Service image') {
-        serviceImage = docker.fillQueue(imgShortName, '-f ./target/Dockerfile ./target')
+        serviceImage = docker.build(imgShortName, '-f ./target/Dockerfile ./target')
     }
 
     try {
