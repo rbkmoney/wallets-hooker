@@ -15,4 +15,5 @@ public interface QueueDao<Q extends Queue> {
     Map<Long, List<TaskQueuePair<Q>>> getTaskQueuePairsMap(Collection<Long> ids);
     void updateRetries(Q queue);
     void disable(long id);
+    boolean shouldDisable(Q queue);
 }

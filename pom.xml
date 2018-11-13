@@ -147,7 +147,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>fistful-proto</artifactId>
-            <version>1.5-cd93749</version>
+            <version>1.7-46b0949</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>

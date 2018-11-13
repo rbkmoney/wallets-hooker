@@ -3,12 +3,6 @@ package com.rbkmoney.wallets_hooker.dao.impl;
 import com.rbkmoney.wallets_hooker.dao.DaoException;
 import com.rbkmoney.wallets_hooker.dao.QueueDao;
 import com.rbkmoney.wallets_hooker.model.*;
-import com.rbkmoney.wallets_hooker.retry.RetryPoliciesService;
-import com.rbkmoney.wallets_hooker.retry.RetryPolicy;
-import com.rbkmoney.wallets_hooker.retry.RetryPolicyType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.core.NestedRuntimeException;
 import org.springframework.jdbc.core.RowMapper;
@@ -24,8 +18,11 @@ import java.util.stream.Collectors;
 @DependsOn("dbInitializer")
 public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements QueueDao<WithdrawalQueue> {
 
-    @Autowired
-    private RetryPoliciesService retryPoliciesService;
+    private long[] delays = {30, 300, 900, 3600,
+            3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600,
+            3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600, 3600,
+            3600, 3600, 3600, 3600
+    }; //in seconds
 
     public WithdrawalQueueDao(DataSource dataSource) {
         setDataSource(dataSource);
@@ -43,11 +40,10 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
         hook.setPubKey(rs.getString("pub_key"));
         hook.setPrivKey(rs.getString("priv_key"));
         hook.setEnabled(rs.getBoolean("enabled"));
-        RetryPolicyType retryPolicyType = RetryPolicyType.valueOf(rs.getString("retry_policy"));
-        RetryPolicy policy = retryPoliciesService.getRetryPolicyByType(retryPolicyType);
-        hook.setRetryPolicyType(retryPolicyType);
         queue.setHook(hook);
-        policy.fillQueue(queue, rs);
+        queue.setFailCount(rs.getInt("fail_count"));
+        queue.setLastFailTime(rs.getLong("last_fail_time"));
+        queue.setNextTime(rs.getLong("next_time"));
         return new TaskQueuePair<>(task, queue);
     };
 
@@ -74,7 +70,7 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
     @Override
     public Map<Long, List<TaskQueuePair<WithdrawalQueue>>> getTaskQueuePairsMap(Collection<Long> excludeQueueIds) {
         final String sql =
-                " select st.message_id, q.id, q.hook_id, q.withdrawal_id, q.fail_count, q.last_fail_time, q.next_time, wh.party_id, wh.url, k.pub_key, k.priv_key, wh.enabled, wh.retry_policy " +
+                " select st.message_id, q.id, q.hook_id, q.withdrawal_id, q.fail_count, q.last_fail_time, q.next_time, wh.party_id, wh.url, k.pub_key, k.priv_key, wh.enabled " +
                         " from whook.scheduled_task st "+
                         " join whook.withdrawal_queue q on st.queue_id = q.id AND st.message_type=CAST(:message_type as whook.message_type)" +
                         " join whook.webhook wh on wh.id = q.hook_id and wh.enabled " +
@@ -105,9 +101,10 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
                         " set last_fail_time = :last_fail_time, fail_count = :fail_count, next_time = :next_time" +
                         " where id = :id";
         try {
-            RetryPolicyType retryPolicyType = queue.getHook().getRetryPolicyType();
-            RetryPolicy policy = retryPoliciesService.getRetryPolicyByType(retryPolicyType);
-            MapSqlParameterSource paramSource = policy.buildParamSource(queue);
+            MapSqlParameterSource paramSource = new MapSqlParameterSource("id", queue.getId())
+                    .addValue("fail_count", queue.getFailCount())
+                    .addValue("last_fail_time", queue.getLastFailTime())
+                    .addValue("next_time", queue.getNextTime());
             getNamedParameterJdbcTemplate().update(sql, paramSource);
         } catch (NestedRuntimeException e) {
             throw new DaoException("Error to update withdrawal_queue with id " + queue.getId(), e);
@@ -122,6 +119,17 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
         } catch (NestedRuntimeException e) {
             throw new DaoException("Error to disable queue with id " + id, e);
         }
+    }
+
+    @Override
+    public boolean shouldDisable(WithdrawalQueue queue) {
+        queue.setFailCount(queue.getFailCount() + 1);
+        queue.setLastFailTime(System.currentTimeMillis());
+        boolean isFail = queue.getFailCount() > delays.length;
+        if (!isFail) {
+            queue.setNextTime(queue.getLastFailTime() + (delays[queue.getFailCount() - 1] * 1000));
+        }
+        return isFail;
     }
 
     public String getMessageType() {

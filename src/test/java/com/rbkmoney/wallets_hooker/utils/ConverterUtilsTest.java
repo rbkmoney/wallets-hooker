@@ -40,6 +40,11 @@ public class ConverterUtilsTest {
     @Test
     public void convertHook() {
         Hook hook = random(Hook.class);
+        List<EventType> eventTypesList = Arrays.asList(EventType.WITHDRAWAL_CREATED, EventType.WITHDRAWAL_SUCCEEDED, EventType.WITHDRAWAL_FAILED);
+        hook.getFilters().forEach(f -> {
+            f.setMessageType(MessageType.WITHDRAWAL);
+            f.setEventType(eventTypesList.get(new Random().nextInt(eventTypesList.size())));
+        });
         Webhook webhook = ConverterUtils.convertHook(hook);
         assertEquals(hook.getPartyId(), webhook.getPartyId());
         assertEquals(hook.getUrl(), webhook.getUrl());

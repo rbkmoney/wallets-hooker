@@ -1,7 +1,5 @@
 create schema if not exists whook;
 
-CREATE TYPE whook.retry_policy_type AS ENUM ('SIMPLE');
-
 CREATE TYPE whook.message_type AS ENUM (
     'WITHDRAWAL',
     'IDENTITY',
@@ -21,7 +19,6 @@ CREATE TABLE whook.webhook
     id bigserial NOT NULL,
     party_id character varying NOT NULL,
     url character varying NOT NULL,
-    retry_policy whook.retry_policy_type NOT NULL DEFAULT 'SIMPLE',
     enabled boolean NOT NULL DEFAULT true,
     CONSTRAINT pk_webhook PRIMARY KEY (id)
 );

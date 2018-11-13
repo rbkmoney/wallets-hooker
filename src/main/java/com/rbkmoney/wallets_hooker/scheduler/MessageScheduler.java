@@ -7,10 +7,6 @@ import com.rbkmoney.wallets_hooker.model.Message;
 import com.rbkmoney.wallets_hooker.model.Queue;
 import com.rbkmoney.wallets_hooker.model.Task;
 import com.rbkmoney.wallets_hooker.model.TaskQueuePair;
-import com.rbkmoney.wallets_hooker.retry.RetryPoliciesService;
-import com.rbkmoney.wallets_hooker.retry.RetryPolicyType;
-import com.rbkmoney.wallets_hooker.service.PostSender;
-import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -26,16 +22,14 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
     private final TaskDao taskDao;
     private final QueueDao<Q> queueDao;
     private final MessageDao<M> messageDao;
-    private final RetryPoliciesService retryPoliciesService;
     private final Set<Long> processedQueues = Collections.synchronizedSet(new HashSet<>());
     private ExecutorService executorService;
 
 
-    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, RetryPoliciesService retryPoliciesService, int numberOfWorkers) {
+    public MessageScheduler(TaskDao taskDao, QueueDao<Q> queueDao, MessageDao<M> messageDao, int numberOfWorkers) {
         this.taskDao = taskDao;
         this.queueDao = queueDao;
         this.messageDao = messageDao;
-        this.retryPoliciesService = retryPoliciesService;
         this.executorService = Executors.newFixedThreadPool(numberOfWorkers);
     }
 
@@ -106,8 +100,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
     //worker should invoke this method when it is fail to send message to hookId
     private void fail(Q queue) {
         log.warn("Queue {} failed.", queue.getId());
-        RetryPolicyType retryPolicyType = queue.getHook().getRetryPolicyType();
-        if (retryPoliciesService.getRetryPolicyByType(retryPolicyType).shouldDisable(queue)) {
+        if (queueDao.shouldDisable(queue)) {
             queueDao.disable(queue.getId());
             taskDao.removeAll(queue.getId());
             log.warn("Queue {} was disabled according to retry policy.", queue.getId());

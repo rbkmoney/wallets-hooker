@@ -45,7 +45,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         message.setEventType(EventType.WITHDRAWAL_CREATED);
         message.setEventId(event.getId());
         message.setOccuredAt(event.getPayload().getOccuredAt());
-        message.setPartyId(walletMessageDao.getAny(event.getSource()).getPartyId());
+        message.setPartyId(walletMessageDao.getAny(withdrawal.getSource()).getPartyId());
         message.setWithdrawalId(event.getSource());
         message.setWithdrawalCreatedAt(event.getCreatedAt());
         message.setWithdrawalWalletId(withdrawal.getSource());

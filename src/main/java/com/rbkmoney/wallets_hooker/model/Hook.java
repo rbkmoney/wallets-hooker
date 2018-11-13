@@ -1,7 +1,5 @@
 package com.rbkmoney.wallets_hooker.model;
 
-import com.rbkmoney.wallets_hooker.retry.RetryPolicyType;
-
 import java.util.Objects;
 import java.util.Set;
 
@@ -13,8 +11,6 @@ public class Hook {
     private String pubKey;
     private String privKey;
     private boolean enabled;
-    private RetryPolicyType retryPolicyType;
-
 
     public long getId() {
         return id;
@@ -72,14 +68,6 @@ public class Hook {
         this.enabled = enabled;
     }
 
-    public RetryPolicyType getRetryPolicyType() {
-        return retryPolicyType;
-    }
-
-    public void setRetryPolicyType(RetryPolicyType retryPolicyType) {
-        this.retryPolicyType = retryPolicyType;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -91,14 +79,13 @@ public class Hook {
                 Objects.equals(getFilters(), hook.getFilters()) &&
                 Objects.equals(getUrl(), hook.getUrl()) &&
                 Objects.equals(getPubKey(), hook.getPubKey()) &&
-                Objects.equals(getPrivKey(), hook.getPrivKey()) &&
-                getRetryPolicyType() == hook.getRetryPolicyType();
+                Objects.equals(getPrivKey(), hook.getPrivKey());
     }
 
     @Override
     public int hashCode() {
 
-        return Objects.hash(getId(), getPartyId(), getFilters(), getUrl(), getPubKey(), getPrivKey(), isEnabled(), getRetryPolicyType());
+        return Objects.hash(getId(), getPartyId(), getFilters(), getUrl(), getPubKey(), getPrivKey(), isEnabled());
     }
 
     @Override
@@ -111,7 +98,6 @@ public class Hook {
                 ", pubKey='" + pubKey + '\'' +
                 ", privKey='" + privKey + '\'' +
                 ", enabled=" + enabled +
-                ", retryPolicyType=" + retryPolicyType +
                 '}';
     }
 
