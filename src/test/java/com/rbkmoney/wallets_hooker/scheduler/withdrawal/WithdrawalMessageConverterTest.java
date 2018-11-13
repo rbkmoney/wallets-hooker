@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.scheduler.withdrawal;
 
 import com.rbkmoney.swag_wallets_webhook_events.WithdrawalStatus;
+import com.rbkmoney.wallets_hooker.AbstractIntegrationTest;
 import com.rbkmoney.wallets_hooker.model.EventType;
 import com.rbkmoney.wallets_hooker.model.WithdrawalMessage;
 import org.junit.Test;
@@ -12,9 +13,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static io.github.benas.randombeans.api.EnhancedRandom.random;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = RANDOM_PORT)
-public class WithdrawalMessageConverterTest {
+public class WithdrawalMessageConverterTest extends AbstractIntegrationTest {
 
     @Autowired
     private WithdrawalMessageConverter converter;
