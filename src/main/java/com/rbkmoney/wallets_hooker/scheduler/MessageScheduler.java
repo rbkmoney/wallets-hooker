@@ -55,6 +55,7 @@ public abstract class MessageScheduler<M extends Message, Q extends Queue> {
         for (long queueId : queuesMap.keySet()) {
             List<Task> tasks = taskQueuePairsMap.get(queueId).stream().map(TaskQueuePair::getTask).collect(Collectors.toList());
             List<M> messagesForQueue = new ArrayList<>();
+            log.info("Start processing tasks: {}", tasks);
             for (Task task : tasks) {
                 M e = messagesMap.get(task.getMessageId());
                 if (e != null) {

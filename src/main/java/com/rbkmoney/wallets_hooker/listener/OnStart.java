@@ -29,7 +29,7 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
     @Value("${withdrawal.polling.lastEventId}")
     private Long withdrawalLastEventId;
 
-    @Value("${hg.pollingEnabled}")
+    @Value("${fistful.pollingEnabled}")
     private boolean pollingEnabled;
 
     public OnStart(EventPublisher identityEventPublisher,

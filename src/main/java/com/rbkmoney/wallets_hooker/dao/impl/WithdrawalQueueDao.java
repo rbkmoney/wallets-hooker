@@ -78,7 +78,7 @@ public class WithdrawalQueueDao extends NamedParameterJdbcDaoSupport implements 
                         " where st.message_type=CAST(:message_type as whook.message_type) "+
                         (excludeQueueIds.size() > 0 ? " AND q.id not in (:queue_ids)" : "") +
                         " and q.enabled and :system_time >= coalesce(q.next_time, 0) " +
-                        " ORDER BY message_id ASC";
+                        " ORDER BY message_id ASC limit 1000";
         final MapSqlParameterSource params = new MapSqlParameterSource("queue_ids", excludeQueueIds)
                 .addValue("message_type", getMessageType())
                 .addValue("system_time", System.currentTimeMillis());
