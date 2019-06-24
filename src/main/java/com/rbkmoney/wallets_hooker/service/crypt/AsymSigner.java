@@ -1,6 +1,6 @@
 package com.rbkmoney.wallets_hooker.service.crypt;
 
-import com.rbkmoney.wallets_hooker.service.err.UnknownCryptoException;
+import com.rbkmoney.wallets_hooker.service.error.UnknownCryptoException;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;

@@ -1,0 +1,73 @@
+server:
+  port: @server.port@
+  servlet:
+    context-path: "/wallets-hooker/v1"
+management:
+  security:
+    flag: false
+  metrics:
+    export:
+      statsd:
+        flavor: etsy
+        enabled: false
+spring:
+  application:
+    name: @project.name@
+  output:
+    ansi:
+      enabled: always
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    url: @db.url@
+    username: @db.user@
+    password: @db.password@
+    hikari:
+      idle-timeout: 30000
+      maximum-pool-size: 10
+    flyway:
+      schemas: whook
+info:
+  version: @project.version@
+  stage: dev
+
+kafka:
+  bootstrap.servers: "localhost:29092"
+  topic:
+    hook: "hook"
+  ssl:
+    enable: false
+    keystore-location: src/main/resources/cert/kenny-k.struzhkin.p12
+    keystore-password: kenny
+    key-password: kenny
+    server-password: kenny12
+    server-keystore-location: src/main/resources/cert/truststore.p12
+
+wallet.polling:
+  url: http://localhost:8022/v1/eventsink/wallet
+  maxPoolSize: 1
+  delay: 5000
+  retryDelay: 5000
+
+destination.polling:
+  url: http://localhost:8022/v1/eventsink/destination
+  maxPoolSize: 1
+  delay: 5000
+  retryDelay: 5000
+
+identity.polling:
+  url: http://localhost:8022/v1/eventsink/identity
+  maxPoolSize: 1
+  delay: 5000
+  retryDelay: 5000
+
+withdrawal.polling:
+  url: http://localhost:8022/v1/eventsink/withdrawal
+  maxPoolSize: 1
+  delay: 5000
+  retryDelay: 5000
+  lastEventId: 1859
+
+fistful.pollingEnabled: true
+
+merchant.callback.timeout: 10

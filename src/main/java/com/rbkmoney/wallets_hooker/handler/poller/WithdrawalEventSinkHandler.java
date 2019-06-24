@@ -1,28 +1,24 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
-import com.rbkmoney.fistful.withdrawal.Event;
-import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.eventstock.client.EventHandler;
+import com.rbkmoney.fistful.withdrawal.EventSinkPayload;
+import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.AbstractWithdrawalEventHandler;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Component
+@RequiredArgsConstructor
 public class WithdrawalEventSinkHandler implements EventHandler<SinkEvent> {
 
-    private final Logger log = LoggerFactory.getLogger(this.getClass());
-
-    private final List<AbstractWithdrawalEventHandler> withdrawalHandlers;
-
-    public WithdrawalEventSinkHandler(List<AbstractWithdrawalEventHandler> withdrawalHandlers) {
-        this.withdrawalHandlers = withdrawalHandlers;
-    }
+    private final List<AbstractWithdrawalEventHandler> eventHandlers;
 
     @Override
     public EventAction handle(SinkEvent sinkEvent, String subsKey) {
@@ -36,8 +32,8 @@ public class WithdrawalEventSinkHandler implements EventHandler<SinkEvent> {
     }
 
     @Transactional(propagation = Propagation.REQUIRED)
-    public void handleEvents(SinkEvent sinkEvent, Event payload) {
-        payload.getChanges().forEach(cc -> withdrawalHandlers.forEach(ph -> {
+    public void handleEvents(SinkEvent sinkEvent, EventSinkPayload payload) {
+        payload.getChanges().forEach(cc -> eventHandlers.forEach(ph -> {
             if (ph.accept(cc)) {
                 ph.handle(cc, sinkEvent);
             }
