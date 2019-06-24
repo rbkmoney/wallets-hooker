@@ -1,6 +1,6 @@
 package com.rbkmoney.wallets_hooker.configuration;
 
-import com.rbkmoney.serializer.ThriftSerializer;
+
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;

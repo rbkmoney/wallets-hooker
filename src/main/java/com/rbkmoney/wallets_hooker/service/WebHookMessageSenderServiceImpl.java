@@ -1,6 +1,6 @@
 package com.rbkmoney.wallets_hooker.service;
 
-import com.rbkmoney.wallets_hooker.exception.KafkaProduceException;
+import com.rbkmoney.kafka.common.exception.KafkaProduceException;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
