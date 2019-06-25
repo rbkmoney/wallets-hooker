@@ -1,5 +1,5 @@
 #!groovy
-build('wallets-hooker', 'java-maven') {
+build('fraudbusters-management', 'java-maven') {
     checkoutRepo()
     loadBuildUtils()
 
