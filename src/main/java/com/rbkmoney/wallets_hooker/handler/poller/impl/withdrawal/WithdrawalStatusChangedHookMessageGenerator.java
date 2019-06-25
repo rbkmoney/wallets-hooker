@@ -51,5 +51,4 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         return message;
     }
 
-
 }

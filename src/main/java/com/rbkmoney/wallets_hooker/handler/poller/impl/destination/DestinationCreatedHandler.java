@@ -1,53 +1,48 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
-import com.rbkmoney.wallets_hooker.dao.destination.DestinationReferenceDao;
-import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
-import com.rbkmoney.wallets_hooker.domain.WebHookModel;
-import com.rbkmoney.wallets_hooker.domain.enums.EventType;
-import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
-import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
-import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
+import com.rbkmoney.wallets_hooker.converter.DestinationToDestinationMessageConverter;
+import com.rbkmoney.wallets_hooker.dao.destination.DestinationMessageDaoImpl;
+import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Slf4j
 @Component
 public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
 
-    private final DestinationReferenceDao destinationReferenceDao;
-    private final HookMessageGenerator destinationCreatedHookMessageGenerator;
-    private final WebHookMessageSenderService webHookMessageSenderService;
-
-    private final WebHookDao webHookDao;
+    private final DestinationMessageDaoImpl destinationMessageDao;
+    private final DestinationToDestinationMessageConverter destinationToDestinationMessageConverter;
+    private final ObjectMapper objectMapper;
 
     private Filter filter;
 
-    public DestinationCreatedHandler(DestinationReferenceDao destinationReferenceDao, WebHookDao webHookDao,
-                                     HookMessageGenerator destinationCreatedHookMessageGenerator, WebHookMessageSenderService webHookMessageSenderService) {
-        this.destinationReferenceDao = destinationReferenceDao;
-        this.webHookDao = webHookDao;
-        this.destinationCreatedHookMessageGenerator = destinationCreatedHookMessageGenerator;
-        this.webHookMessageSenderService = webHookMessageSenderService;
+    public DestinationCreatedHandler(DestinationMessageDaoImpl destinationMessageDao, ObjectMapper objectMapper,
+                                     DestinationToDestinationMessageConverter destinationToDestinationMessageConverter
+    ) {
+        this.destinationMessageDao = destinationMessageDao;
+        this.objectMapper = objectMapper;
+        this.destinationToDestinationMessageConverter = destinationToDestinationMessageConverter;
         filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
     }
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
-//        DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(sinkEvent.getSource());
-//
-//        if (destinationIdentityReference != null) {
-//            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(),
-//                    null, EventType.DESTINATION_CREATED);
-//            webHookModels.stream()
-//                    .map(webhook -> destinationCreatedHookMessageGenerator.generate(change.getCreated(), webhook, sinkEvent.getId(), 0L))
-//                    .forEach(webHookMessageSenderService::send);
-//        }
+        try {
+            Destination destination = destinationToDestinationMessageConverter.convert(change.getCreated());
+            DestinationMessage destinationMessage = new DestinationMessage();
+            destinationMessage.setDestinationId(change.getCreated().getId());
+            destinationMessage.setMessage(objectMapper.writeValueAsString(destination));
+            destinationMessageDao.create(destinationMessage);
+        } catch (JsonProcessingException e) {
+            log.error("Error when handle DestinationCreated change: {} e: ", change, e);
+        }
     }
 
     @Override

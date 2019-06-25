@@ -2,9 +2,12 @@ package com.rbkmoney.wallets_hooker.handler.poller;
 
 import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.fistful.account.Account;
+import com.rbkmoney.fistful.base.BankCard;
+import com.rbkmoney.fistful.base.BankCardPaymentSystem;
 import com.rbkmoney.fistful.base.Cash;
 import com.rbkmoney.fistful.base.CurrencyRef;
 import com.rbkmoney.fistful.destination.Destination;
+import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.fistful.wallet.AccountChange;
 import com.rbkmoney.fistful.wallet.Change;
 import com.rbkmoney.fistful.wallet.Event;
@@ -19,7 +22,6 @@ import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
-import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderServiceImpl;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.junit.Assert;
@@ -72,17 +74,21 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
 
         webHookDao.create(webhook);
 
-        EventAction test = destinationEventSinkHandler.handle(createDestination(), "test");
-
-        Assert.assertEquals(test, EventAction.CONTINUE);
-
-        EventAction action = walletEventSinkHandler.handle(createWalletEvent(), "test");
+        EventAction action = destinationEventSinkHandler.handle(createDestination(), "test");
 
         Assert.assertEquals(action, EventAction.CONTINUE);
 
-        EventAction withdrawalAction = withdrawalEventSinkHandler.handle(createWithdrawalEvent(), "test");
+        action = destinationEventSinkHandler.handle(createDestinationAccount(), "test");
 
-        Assert.assertEquals(withdrawalAction, EventAction.CONTINUE);
+        Assert.assertEquals(action, EventAction.CONTINUE);
+
+        action = walletEventSinkHandler.handle(createWalletEvent(), "test");
+
+        Assert.assertEquals(action, EventAction.CONTINUE);
+
+        action = withdrawalEventSinkHandler.handle(createWithdrawalEvent(), "test");
+
+        Assert.assertEquals(action, EventAction.CONTINUE);
 
         Mockito.verify(webHookMessageSenderService, Mockito.times(1))
                 .send(any());
@@ -99,9 +105,9 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
         changes.add(change);
         payload.setChanges(changes);
         sinkEvent.setPayload(payload);
-        withdrawalAction = withdrawalEventSinkHandler.handle(sinkEvent, "test");
+        action = withdrawalEventSinkHandler.handle(sinkEvent, "test");
 
-        Assert.assertEquals(withdrawalAction, EventAction.CONTINUE);
+        Assert.assertEquals(action, EventAction.CONTINUE);
 
         Mockito.verify(webHookMessageSenderService, Mockito.times(2))
                 .send(any());
@@ -109,6 +115,30 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
 
     @NotNull
     private com.rbkmoney.fistful.destination.SinkEvent createDestination() {
+        com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
+        com.rbkmoney.fistful.destination.Event payload = new com.rbkmoney.fistful.destination.Event();
+        ArrayList<com.rbkmoney.fistful.destination.Change> changes = new ArrayList<>();
+        com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
+        Destination destination = new Destination();
+        destination.setId(DESTINATION);
+        Resource resource = new Resource();
+        BankCard bankCard = new BankCard();
+        bankCard.setBin("1234");
+        bankCard.setMaskedPan("421");
+        bankCard.setPaymentSystem(BankCardPaymentSystem.mastercard);
+        resource.setBankCard(bankCard);
+        destination.setResource(resource);
+        change.setCreated(destination);
+        changes.add(change);
+        payload.setChanges(changes);
+        payload.setSequence(1);
+        sinkEvent.setPayload(payload);
+        sinkEvent.setSource(DESTINATION);
+        return sinkEvent;
+    }
+
+    @NotNull
+    private com.rbkmoney.fistful.destination.SinkEvent createDestinationAccount() {
         com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
         com.rbkmoney.fistful.destination.Event payload = new com.rbkmoney.fistful.destination.Event();
         ArrayList<com.rbkmoney.fistful.destination.Change> changes = new ArrayList<>();

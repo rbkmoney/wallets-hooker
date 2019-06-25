@@ -46,6 +46,12 @@ CREATE TABLE whook.wallet_identity_reference (
   CONSTRAINT wallet_identity_reference_pkey PRIMARY KEY (wallet_id)
 );
 
+CREATE TABLE whook.destination_message (
+  destination_id character varying(40) NOT NULL,
+  message text NOT NULL,
+  CONSTRAINT destination_pkey PRIMARY KEY (destination_id)
+);
+
 CREATE TABLE whook.destination_identity_reference (
   destination_id character varying(40) NOT NULL,
   identity_id character varying(40) NOT NULL,
