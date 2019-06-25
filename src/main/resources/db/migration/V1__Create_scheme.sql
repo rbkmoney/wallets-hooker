@@ -13,8 +13,8 @@ CREATE TYPE whook.event_type AS ENUM (
 CREATE TABLE whook.webhook
 (
     id bigserial NOT NULL,
-    identity_id character varying NOT NULL,
-    wallet_id character varying,
+    identity_id character varying(40) NOT NULL,
+    wallet_id character varying(40),
     url character varying NOT NULL,
     enabled boolean NOT NULL DEFAULT true,
     CONSTRAINT pk_webhook PRIMARY KEY (id)
@@ -33,7 +33,7 @@ CREATE TABLE whook.webhook_to_events
 CREATE TABLE whook.identity_key
 (
     id bigserial NOT NULL,
-    identity_id character varying NOT NULL,
+    identity_id character varying(40) NOT NULL,
     pub_key character VARYING NOT NULL,
     priv_key character VARYING NOT NULL,
     CONSTRAINT pk_identity_key PRIMARY KEY (id),
@@ -41,20 +41,24 @@ CREATE TABLE whook.identity_key
 );
 
 CREATE TABLE whook.wallet_identity_reference (
-  wallet_id character varying NOT NULL,
-  identity_id character NOT NULL,
+  wallet_id character varying(40) NOT NULL,
+  identity_id character varying(40) NOT NULL,
   CONSTRAINT wallet_identity_reference_pkey PRIMARY KEY (wallet_id)
 );
 
 CREATE TABLE whook.destination_identity_reference (
-  destination_id character varying NOT NULL,
-  identity_id character NOT NULL,
+  destination_id character varying(40) NOT NULL,
+  identity_id character varying(40) NOT NULL,
+  event_id character varying(40) NOT NULL,
+  sequence_id bigint NOT NULL,
   CONSTRAINT destination_identity_reference_pkey PRIMARY KEY (destination_id)
 );
 
 CREATE TABLE whook.withdrawal_identity_wallet_reference (
-  withdrawal_id character varying NOT NULL,
-  identity_id character NOT NULL,
-  wallet_id character NOT NULL,
+  withdrawal_id character varying(40) NOT NULL,
+  identity_id character varying(40) NOT NULL,
+  wallet_id character varying(40) NOT NULL,
+  event_id character varying(40) NOT NULL,
+  sequence_id bigint NOT NULL,
   CONSTRAINT withdrawal_identity_wallet_reference_pkey PRIMARY KEY (withdrawal_id)
 );

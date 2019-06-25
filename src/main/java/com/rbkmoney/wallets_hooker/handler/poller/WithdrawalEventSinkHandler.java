@@ -31,7 +31,7 @@ public class WithdrawalEventSinkHandler implements EventHandler<SinkEvent> {
         return EventAction.CONTINUE;
     }
 
-    public void handleEvents(SinkEvent sinkEvent, EventSinkPayload payload) {
+    private void handleEvents(SinkEvent sinkEvent, EventSinkPayload payload) {
         payload.getChanges().forEach(cc -> eventHandlers.forEach(ph -> {
             if (ph.accept(cc)) {
                 ph.handle(cc, sinkEvent);

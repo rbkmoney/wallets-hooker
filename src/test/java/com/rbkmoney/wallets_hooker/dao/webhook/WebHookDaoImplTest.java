@@ -1,12 +1,14 @@
 package com.rbkmoney.wallets_hooker.dao.webhook;
 
 import com.rbkmoney.wallets_hooker.converter.WebHookModelToWebHookConverter;
+import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.identity.IdentityKeyDaoImpl;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import lombok.extern.slf4j.Slf4j;
+import org.flywaydb.core.Flyway;
 import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,14 @@ public class WebHookDaoImplTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private WebHookDao webHookDao;
+
+    static {
+        Flyway flyway = Flyway.configure()
+                .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
+                .schemas("whook")
+                .load();
+        flyway.migrate();
+    }
 
     @Test
     public void create() {

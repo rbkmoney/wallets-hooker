@@ -31,7 +31,7 @@ public class DestinationEventSinkHandler implements EventHandler<SinkEvent> {
         return EventAction.CONTINUE;
     }
 
-    public void handleEvents(SinkEvent sinkEvent, Event payload) {
+    private void handleEvents(SinkEvent sinkEvent, Event payload) {
         payload.getChanges().forEach(cc -> eventHandlers.forEach(ph -> {
             if (ph.accept(cc)) {
                 ph.handle(cc, sinkEvent);

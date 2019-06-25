@@ -29,6 +29,8 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
         DestinationIdentityReference reference = new DestinationIdentityReference();
         reference.setDestinationId(parent.getSource());
         reference.setIdentityId(account.getCreated().getIdentity());
+        reference.setEventId(parent.getSource());
+        reference.setSequenceId((long) parent.getPayload().getSequence());
         destinationReferenceDao.create(reference);
         log.info("Handle destination event account change with account: {} ", account);
     }

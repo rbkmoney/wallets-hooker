@@ -167,7 +167,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                         WEBHOOK.WALLET_ID,
                         WEBHOOK_TO_EVENTS.EVENT_TYPE,
                         IDENTITY_KEY.PUB_KEY)
-                .from(WEBHOOK, WEBHOOK_TO_EVENTS, IDENTITY_KEY)
+                .from(WEBHOOK)
                 .join(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
                 .join(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID))
                 .where(

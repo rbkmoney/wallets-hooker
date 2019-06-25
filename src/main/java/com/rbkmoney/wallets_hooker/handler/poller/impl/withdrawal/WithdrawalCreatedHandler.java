@@ -8,13 +8,14 @@ import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationReferenceDao;
+import com.rbkmoney.wallets_hooker.dao.wallet.WalletReferenceDao;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.dao.withdrawal.WithdrawalReferenceDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
+import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
-import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorService;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -27,19 +28,21 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
     private final WithdrawalReferenceDao withdrawalReferenceDao;
     private final DestinationReferenceDao destinationReferenceDao;
+    private final WalletReferenceDao walletReferenceDao;
     private final WebHookDao webHookDao;
-    private final WebHookMessageGeneratorService webHookMessageGeneratorService;
+    private final WithdrawalCreatedHookMessageGenerator withdrawalCreatedHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
     private Filter filter;
 
     public WithdrawalCreatedHandler(WithdrawalReferenceDao withdrawalReferenceDao, DestinationReferenceDao destinationReferenceDao,
-                                    WebHookDao webHookDao, WebHookMessageGeneratorService webHookMessageGeneratorService,
-                                    WebHookMessageSenderService webHookMessageSenderService) {
+                                    WebHookDao webHookDao, WithdrawalCreatedHookMessageGenerator withdrawalCreatedHookMessageGenerator,
+                                    WebHookMessageSenderService webHookMessageSenderService, WalletReferenceDao walletReferenceDao) {
         this.withdrawalReferenceDao = withdrawalReferenceDao;
         this.destinationReferenceDao = destinationReferenceDao;
         this.webHookDao = webHookDao;
-        this.webHookMessageGeneratorService = webHookMessageGeneratorService;
+        this.walletReferenceDao = walletReferenceDao;
+        this.withdrawalCreatedHookMessageGenerator = withdrawalCreatedHookMessageGenerator;
         this.webHookMessageSenderService = webHookMessageSenderService;
         filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
     }
@@ -48,23 +51,39 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     public void handle(Change change, SinkEvent event) {
         Withdrawal withdrawal = change.getCreated();
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
+        WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
+        while (destinationIdentityReference == null || walletIdentityReference == null) {
+            log.warn("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
+            try {
+                Thread.sleep(500L);
+                destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
+                walletIdentityReference = walletReferenceDao.get(event.getSource());
+            } catch (InterruptedException e) {
+                log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), event.getSource(), e);
+                Thread.currentThread().interrupt();
+            }
+        }
+        createReference(withdrawal, destinationIdentityReference, event.getPayload().sequence);
 
-        createReference(withdrawal, destinationIdentityReference);
-
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), withdrawal.getSource(), EventType.WITHDRAWAL_CREATED);
+        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
+        if (!destinationIdentityReference.getIdentityId().equals(walletIdentityReference.getIdentityId())) {
+            List<WebHookModel> webHookModelsWallets = webHookDao.getModelByIdentityAndWalletId(walletIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
+            webHookModels.addAll(webHookModelsWallets);
+        }
 
         webHookModels.stream()
-                .map(webhook -> webHookMessageGeneratorService.generate(withdrawal, webhook))
+                .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(event.getSource()))
+                .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId(), 0L))
                 .forEach(webHookMessageSenderService::send);
-
-
     }
 
-    private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference) {
+    private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference, int sequenceId) {
         WithdrawalIdentityWalletReference reference = new WithdrawalIdentityWalletReference();
         reference.setIdentityId(destinationIdentityReference.getIdentityId());
         reference.setWalletId(withdrawal.getSource());
         reference.setWithdrawalId(withdrawal.getId());
+        reference.setEventId(withdrawal.getId());
+        reference.setSequenceId((long) sequenceId);
         withdrawalReferenceDao.create(reference);
     }
 

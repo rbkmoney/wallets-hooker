@@ -22,7 +22,6 @@ public class DestinationReferenceDaoImpl extends AbstractDao implements Destinat
         this.listRecordRowMapper = new RecordRowMapper<>(DESTINATION_IDENTITY_REFERENCE, DestinationIdentityReference.class);
     }
 
-
     @Override
     public void create(DestinationIdentityReference reference) {
         InsertReturningStep<DestinationIdentityReferenceRecord> insertReturningStep = getDslContext()
@@ -37,7 +36,10 @@ public class DestinationReferenceDaoImpl extends AbstractDao implements Destinat
     @Override
     public DestinationIdentityReference get(String id) {
         return fetchOne(getDslContext()
-                        .select(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID, DESTINATION_IDENTITY_REFERENCE.IDENTITY_ID)
+                        .select(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID,
+                                DESTINATION_IDENTITY_REFERENCE.IDENTITY_ID,
+                                DESTINATION_IDENTITY_REFERENCE.EVENT_ID,
+                                DESTINATION_IDENTITY_REFERENCE.SEQUENCE_ID)
                         .from(DESTINATION_IDENTITY_REFERENCE)
                         .where(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID.eq(id)),
                 listRecordRowMapper);

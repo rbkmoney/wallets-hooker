@@ -17,9 +17,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final EventPublisher identityEventPublisher;
-    private final EventPublisher withdrawalEventPublisher;
-    private final EventPublisher walletEventPublisher;
+//    private final EventPublisher identityEventPublisher;
+//    private final EventPublisher withdrawalEventPublisher;
+//    private final EventPublisher walletEventPublisher;
 //
 //    private final WalletMessageDao walletMessageDao;
 //    private final IdentityMessageDao identityMessageDao;

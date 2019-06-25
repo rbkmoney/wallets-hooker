@@ -5,4 +5,7 @@ import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.wallets_hooker.handler.Handler;
 
 public abstract class AbstractWithdrawalEventHandler implements Handler<Change, SinkEvent> {
+
+
+
 }

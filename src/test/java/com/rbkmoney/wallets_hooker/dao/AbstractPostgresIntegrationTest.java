@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.dao.webhook;
+package com.rbkmoney.wallets_hooker.dao;
 
 import org.flywaydb.core.Flyway;
 import org.junit.ClassRule;
@@ -38,11 +38,6 @@ public abstract class AbstractPostgresIntegrationTest {
                     "flyway.user=" + postgres.getUsername(),
                     "flyway.password=" + postgres.getPassword()
             ).applyTo(configurableApplicationContext);
-            Flyway flyway = Flyway.configure()
-                    .dataSource(postgres.getJdbcUrl(), postgres.getUsername(), postgres.getPassword())
-                    .schemas("whook")
-                    .load();
-            flyway.migrate();
         }
     }
 
