@@ -11,6 +11,8 @@ import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
 import com.rbkmoney.fistful.withdrawal.EventSinkPayload;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
+import com.rbkmoney.fistful.withdrawal.WithdrawalStatus;
+import com.rbkmoney.fistful.withdrawal.WithdrawalSucceeded;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
@@ -83,6 +85,25 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
         Assert.assertEquals(withdrawalAction, EventAction.CONTINUE);
 
         Mockito.verify(webHookMessageSenderService, Mockito.times(1))
+                .send(any());
+
+        com.rbkmoney.fistful.withdrawal.SinkEvent sinkEvent = new com.rbkmoney.fistful.withdrawal.SinkEvent();
+        sinkEvent.setSource(WITHDRAWAL_ID);
+        EventSinkPayload payload = new EventSinkPayload();
+        payload.setSequence(1);
+        ArrayList<com.rbkmoney.fistful.withdrawal.Change> changes = new ArrayList<>();
+        com.rbkmoney.fistful.withdrawal.Change change = new com.rbkmoney.fistful.withdrawal.Change();
+        WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
+        WithdrawalStatus succeeded = WithdrawalStatus.succeeded(withdrawalSucceeded);
+        change.setStatusChanged(succeeded);
+        changes.add(change);
+        payload.setChanges(changes);
+        sinkEvent.setPayload(payload);
+        withdrawalAction = withdrawalEventSinkHandler.handle(sinkEvent, "test");
+
+        Assert.assertEquals(withdrawalAction, EventAction.CONTINUE);
+
+        Mockito.verify(webHookMessageSenderService, Mockito.times(2))
                 .send(any());
     }
 

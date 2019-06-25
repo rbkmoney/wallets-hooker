@@ -25,7 +25,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     @Override
     public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, Long eventId, Long parentId) {
         WebhookMessage webhookMessage = generatorService.generate(event, model, eventId, parentId);
-        if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
+        if (model.getEventTypes() != null && model.getEventTypes().contains(EventType.WITHDRAWAL_CREATED)) {
             webhookMessage.setParentEventId(parentId);
         } else {
             webhookMessage.setParentEventId(0);

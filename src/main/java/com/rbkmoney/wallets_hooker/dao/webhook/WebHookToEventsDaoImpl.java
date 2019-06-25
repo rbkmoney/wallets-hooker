@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 import java.util.List;
 
+import static com.rbkmoney.wallets_hooker.domain.tables.WalletIdentityReference.WALLET_IDENTITY_REFERENCE;
 import static com.rbkmoney.wallets_hooker.domain.tables.WebhookToEvents.WEBHOOK_TO_EVENTS;
 
 @Component
@@ -29,8 +30,9 @@ public class WebHookToEventsDaoImpl extends AbstractDao implements WebHookToEven
     @Override
     public void create(WebhookToEvents webhookToEvents) {
         InsertReturningStep<WebhookToEventsRecord> insertReturningStep = getDslContext()
-                .insertInto(WEBHOOK_TO_EVENTS, WEBHOOK_TO_EVENTS.HOOK_ID, WEBHOOK_TO_EVENTS.EVENT_TYPE)
-                .values(webhookToEvents.getHookId(), webhookToEvents.getEventType())
+                .insertInto(WEBHOOK_TO_EVENTS)
+                .set(getDslContext()
+                        .newRecord(WEBHOOK_TO_EVENTS, webhookToEvents))
                 .onConflict(WEBHOOK_TO_EVENTS.HOOK_ID, WEBHOOK_TO_EVENTS.EVENT_TYPE)
                 .doNothing();
         execute(insertReturningStep);

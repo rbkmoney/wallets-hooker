@@ -37,7 +37,11 @@ public class WithdrawalReferenceDaoImpl extends AbstractDao implements Withdrawa
     @Override
     public WithdrawalIdentityWalletReference get(String id) {
         return fetchOne(getDslContext()
-                        .select(WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WITHDRAWAL_ID, WALLET_IDENTITY_REFERENCE.WALLET_ID, WALLET_IDENTITY_REFERENCE.IDENTITY_ID)
+                        .select(WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WITHDRAWAL_ID,
+                                WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WALLET_ID,
+                                WITHDRAWAL_IDENTITY_WALLET_REFERENCE.IDENTITY_ID,
+                                WITHDRAWAL_IDENTITY_WALLET_REFERENCE.EVENT_ID,
+                                WITHDRAWAL_IDENTITY_WALLET_REFERENCE.SEQUENCE_ID)
                         .from(WITHDRAWAL_IDENTITY_WALLET_REFERENCE)
                         .where(WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WITHDRAWAL_ID.eq(id)),
                 listRecordRowMapper);
