@@ -2,9 +2,7 @@ package com.rbkmoney.wallets_hooker.dao.destination;
 
 import com.rbkmoney.mapper.RecordRowMapper;
 import com.rbkmoney.wallets_hooker.dao.AbstractDao;
-import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
-import com.rbkmoney.wallets_hooker.domain.tables.records.DestinationIdentityReferenceRecord;
 import com.rbkmoney.wallets_hooker.domain.tables.records.DestinationMessageRecord;
 import org.jooq.InsertReturningStep;
 import org.springframework.jdbc.core.RowMapper;
@@ -13,7 +11,6 @@ import org.springframework.stereotype.Component;
 import javax.sql.DataSource;
 
 import static com.rbkmoney.wallets_hooker.domain.Tables.DESTINATION_MESSAGE;
-import static com.rbkmoney.wallets_hooker.domain.tables.DestinationIdentityReference.DESTINATION_IDENTITY_REFERENCE;
 
 @Component
 public class DestinationMessageDaoImpl extends AbstractDao implements DestinationMessageDao {

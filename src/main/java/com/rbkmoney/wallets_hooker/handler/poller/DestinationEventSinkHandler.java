@@ -4,12 +4,12 @@ import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.eventstock.client.EventHandler;
 import com.rbkmoney.fistful.destination.Event;
 import com.rbkmoney.fistful.destination.SinkEvent;
+import com.rbkmoney.wallets_hooker.constant.EventTopic;
+import com.rbkmoney.wallets_hooker.dao.EventLogDao;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.AbstractDestinationEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,11 +19,13 @@ import java.util.List;
 public class DestinationEventSinkHandler implements EventHandler<SinkEvent> {
 
     private final List<AbstractDestinationEventHandler> eventHandlers;
+    private final EventLogDao eventLogDao;
 
     @Override
     public EventAction handle(SinkEvent sinkEvent, String subsKey) {
         try {
             handleEvents(sinkEvent, sinkEvent.getPayload());
+            eventLogDao.create(sinkEvent.getId(), EventTopic.DESTINATION);
         } catch (RuntimeException e) {
             log.error("Error when polling destination event with id={}", sinkEvent.getId(), e);
             return EventAction.DELAYED_RETRY;

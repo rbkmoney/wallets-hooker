@@ -6,66 +6,27 @@ import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
-import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
-import com.rbkmoney.wallets_hooker.dao.withdrawal.WithdrawalReferenceDao;
-import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
-import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
-import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 @Slf4j
 @Component
 public class WithdrawalFailedHandler extends AbstractWithdrawalEventHandler {
 
-    private final WithdrawalReferenceDao withdrawalReferenceDao;
-    private final WebHookDao webHookDao;
-    private final WithdrawalStatusChangedHookMessageGenerator withdrawalStatusChangedHookMessageGenerator;
-    private final WebHookMessageSenderService webHookMessageSenderService;
+    private final WithdrawalChangeStatusHandler withdrawalChangeStatusHandler;
 
     private Filter filter;
 
-    public WithdrawalFailedHandler(WithdrawalReferenceDao withdrawalReferenceDao, WebHookDao webHookDao,
-                                   WithdrawalStatusChangedHookMessageGenerator withdrawalStatusChangedHookMessageGenerator,
-                                   WebHookMessageSenderService webHookMessageSenderService) {
-        this.withdrawalReferenceDao = withdrawalReferenceDao;
-        this.webHookDao = webHookDao;
-        this.withdrawalStatusChangedHookMessageGenerator = withdrawalStatusChangedHookMessageGenerator;
-        this.webHookMessageSenderService = webHookMessageSenderService;
+    public WithdrawalFailedHandler(WithdrawalChangeStatusHandler withdrawalChangeStatusHandler) {
+        this.withdrawalChangeStatusHandler = withdrawalChangeStatusHandler;
         filter = new PathConditionFilter(new PathConditionRule("status_changed.failed", new IsNullCondition().not()));
     }
 
     @Override
     public void handle(Change change, SinkEvent event) {
         String withdrawalId = event.getSource();
-        WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), null, EventType.WITHDRAWAL_FAILED);
-        Long parentId = reference.getSequenceId();
-        String walletId = reference.getWalletId();
-        webHookModels.stream()
-                .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
-                .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                        event.getId(), parentId))
-                .forEach(webHookMessageSenderService::send);
-    }
-
-    private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {
-        WithdrawalIdentityWalletReference reference = withdrawalReferenceDao.get(withdrawalId);
-        while (reference == null) {
-            log.warn("Waiting withdrawal create: {} !", withdrawalId);
-            try {
-                Thread.sleep(500L);
-                reference = withdrawalReferenceDao.get(withdrawalId);
-            } catch (InterruptedException e) {
-                log.error("Error when waiting withdrawal create: {} e: ", withdrawalId, e);
-                Thread.currentThread().interrupt();
-            }
-
-        }
-        return reference;
+        withdrawalChangeStatusHandler.handleChangeStatus(change, event, withdrawalId, EventType.WITHDRAWAL_FAILED);
     }
 
     @Override
