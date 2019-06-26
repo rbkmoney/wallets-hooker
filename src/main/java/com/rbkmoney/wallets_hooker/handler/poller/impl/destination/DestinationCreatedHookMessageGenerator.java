@@ -33,6 +33,7 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
             webhookMessage.setRequestBody(objectMapper.writeValueAsBytes(destinationCreated));
         } catch (IOException e) {
             log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model, e);
+            throw new RuntimeException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
         }
         webhookMessage.setEventId(eventId);
         webhookMessage.setParentEventId(0);

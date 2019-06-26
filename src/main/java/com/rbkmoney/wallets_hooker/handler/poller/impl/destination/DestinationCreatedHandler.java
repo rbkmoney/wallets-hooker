@@ -42,6 +42,7 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
             destinationMessageDao.create(destinationMessage);
         } catch (JsonProcessingException e) {
             log.error("Error when handle DestinationCreated change: {} e: ", change, e);
+            throw new RuntimeException("Error when handle DestinationCreated change", e);
         }
     }
 
