@@ -52,6 +52,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 .walletId(rs.getString(WEBHOOK.WALLET_ID.getName()))
                 .url(rs.getString(WEBHOOK.URL.getName()))
                 .pubKey(rs.getString(IDENTITY_KEY.PUB_KEY.getName()))
+                .privateKey(rs.getString(IDENTITY_KEY.PRIV_KEY.getName()))
                 .build();
     }
 
@@ -103,13 +104,14 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
 
     @Override
     public WebHookModel getById(long id) {
-        SelectConditionStep<Record6<Long, String, Boolean, String, String, String>> where = getDslContext()
+        SelectConditionStep<Record7<Long, String, Boolean, String, String, String, String>> where = getDslContext()
                 .select(WEBHOOK.ID,
                         WEBHOOK.IDENTITY_ID,
                         WEBHOOK.ENABLED,
                         WEBHOOK.URL,
                         WEBHOOK.WALLET_ID,
-                        IDENTITY_KEY.PUB_KEY)
+                        IDENTITY_KEY.PUB_KEY,
+                        IDENTITY_KEY.PRIV_KEY)
                 .from(WEBHOOK)
                 .leftJoin(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID))
                 .where(WEBHOOK.ID.eq(id));
@@ -151,14 +153,15 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
     @Override
     public List<WebHookModel> getModelByIdentityAndWalletId(String identityId, String walletId, EventType eventType) {
         Condition condition = DSL.trueCondition();
-        SelectLimitPercentStep<Record7<Long, String, Boolean, String, String, EventType, String>> record = getDslContext()
+        SelectLimitPercentStep<Record8<Long, String, Boolean, String, String, EventType, String, String>> record = getDslContext()
                 .select(WEBHOOK.ID,
                         WEBHOOK.IDENTITY_ID,
                         WEBHOOK.ENABLED,
                         WEBHOOK.URL,
                         WEBHOOK.WALLET_ID,
                         WEBHOOK_TO_EVENTS.EVENT_TYPE,
-                        IDENTITY_KEY.PUB_KEY)
+                        IDENTITY_KEY.PUB_KEY,
+                        IDENTITY_KEY.PRIV_KEY)
                 .from(WEBHOOK)
                 .leftJoin(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
                 .leftJoin(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID))

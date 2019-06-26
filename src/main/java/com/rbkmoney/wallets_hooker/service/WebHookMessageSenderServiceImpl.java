@@ -13,14 +13,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class WebHookMessageSenderServiceImpl implements WebHookMessageSenderService {
 
-    private final KafkaTemplate kafkaTemplate;
+    private final KafkaTemplate<String, WebhookMessage> kafkaTemplate;
 
     @Value("${kafka.topic.hook}")
     private String topicName;
 
     public void send(WebhookMessage webhookMessage) {
         try {
-            kafkaTemplate.send(topicName, webhookMessage.getEventId(), webhookMessage).get();
+            kafkaTemplate.send(topicName, String.valueOf(webhookMessage.getEventId()), webhookMessage).get();
         } catch (InterruptedException e) {
             log.error("InterruptedException command: {} e: ", webhookMessage, e);
             Thread.currentThread().interrupt();

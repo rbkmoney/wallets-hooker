@@ -6,6 +6,7 @@ import com.rbkmoney.fistful.base.Cash;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalBody;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -20,6 +21,7 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
 
     private final WebHookMessageGeneratorServiceImpl<Withdrawal> generatorService;
     private final ObjectMapper objectMapper;
+    private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
     @Override
     public WebhookMessage generate(Withdrawal event, WebHookModel model, Long eventId, Long parentId) {
@@ -30,7 +32,9 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
         withdrawal.setWallet(event.getSource());
         withdrawal.setBody(initBody(event));
         try {
-            webhookMessage.setRequestBody(objectMapper.writeValueAsBytes(withdrawal));
+            String requestBody = objectMapper.writeValueAsString(withdrawal);
+            webhookMessage.setRequestBody(requestBody.getBytes());
+            webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage event: {} model: {} eventId: {} e: ", event, model, eventId, e);
         }

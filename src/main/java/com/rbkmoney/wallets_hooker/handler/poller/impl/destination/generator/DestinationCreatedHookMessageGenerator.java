@@ -5,6 +5,7 @@ import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -21,6 +22,7 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
 
     private final WebHookMessageGeneratorServiceImpl<DestinationMessage> generatorService;
     private final ObjectMapper objectMapper;
+    private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
     @Override
     public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, Long eventId, Long parentId) {
@@ -30,7 +32,9 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
             Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
             destinationCreated.setDestination(value);
-            webhookMessage.setRequestBody(objectMapper.writeValueAsBytes(destinationCreated));
+            String requestBody = objectMapper.writeValueAsString(destinationCreated);
+            webhookMessage.setRequestBody(requestBody.getBytes());
+            webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
         } catch (IOException e) {
             log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model, e);
             throw new RuntimeException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
@@ -39,5 +43,7 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
         webhookMessage.setParentEventId(0);
         return webhookMessage;
     }
+
+
 
 }

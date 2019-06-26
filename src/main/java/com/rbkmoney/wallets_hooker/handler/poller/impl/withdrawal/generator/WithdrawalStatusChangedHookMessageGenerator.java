@@ -7,6 +7,7 @@ import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalFailed;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalSucceeded;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -21,6 +22,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
 
     private final WebHookMessageGeneratorServiceImpl<WithdrawalStatus> generatorService;
     private final ObjectMapper objectMapper;
+    private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
     @Override
     public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, Long eventId, Long parentId) {
@@ -30,20 +32,21 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         } else {
             webhookMessage.setParentEventId(0);
         }
-        byte[] message = initRequestBody(event);
-        webhookMessage.setRequestBody(message);
+        String message = initRequestBody(event);
+        webhookMessage.setRequestBody(message.getBytes());
+        webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
         return webhookMessage;
     }
 
-    private byte[] initRequestBody(WithdrawalStatus event) {
-        byte[] message = null;
+    private String initRequestBody(WithdrawalStatus event) {
+        String message = null;
         try {
             if (event.isSetFailed()) {
                 WithdrawalFailed withdrawalFailed = new WithdrawalFailed();
-                message = objectMapper.writeValueAsBytes(withdrawalFailed);
+                message = objectMapper.writeValueAsString(withdrawalFailed);
             } else if (event.isSetSucceeded()) {
                 WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
-                message = objectMapper.writeValueAsBytes(withdrawalSucceeded);
+                message = objectMapper.writeValueAsString(withdrawalSucceeded);
             }
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage e: ", e);

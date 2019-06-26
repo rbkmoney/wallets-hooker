@@ -7,6 +7,7 @@ import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -21,6 +22,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
 
     private final WebHookMessageGeneratorServiceImpl<StatusChange> generatorService;
     private final ObjectMapper objectMapper;
+    private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
     @Override
     public WebhookMessage generate(StatusChange statusChange, WebHookModel model, Long eventId, Long parentId) {
@@ -30,19 +32,22 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
         } else {
             webhookMessage.setParentEventId(0);
         }
-        webhookMessage.setRequestBody(generateMessage(statusChange));
+        String message = generateMessage(statusChange);
+        additionalHeadersGenerator.generate(model, message);
+        webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
+        webhookMessage.setRequestBody(message.getBytes());
         return webhookMessage;
     }
 
-    private byte[] generateMessage(StatusChange statusChange) {
-        byte[] message = null;
+    private String generateMessage(StatusChange statusChange) {
+        String message = null;
         try {
             if (statusChange.getChanged().isSetAuthorized()) {
                 DestinationAuthorized destinationAuthorized = new DestinationAuthorized();
-                message = objectMapper.writeValueAsBytes(destinationAuthorized);
+                message = objectMapper.writeValueAsString(destinationAuthorized);
             } else if (statusChange.getChanged().isSetUnauthorized()) {
                 DestinationUnauthorized destination = new DestinationUnauthorized();
-                message = objectMapper.writeValueAsBytes(destination);
+                message = objectMapper.writeValueAsString(destination);
             }
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage e: ", e);
