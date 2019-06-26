@@ -40,7 +40,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     }
 
     private String generateMessage(StatusChange statusChange) {
-        String message = null;
+        String message = "";
         try {
             if (statusChange.getChanged().isSetAuthorized()) {
                 DestinationAuthorized destinationAuthorized = new DestinationAuthorized();

@@ -39,7 +39,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     }
 
     private String initRequestBody(WithdrawalStatus event) {
-        String message = null;
+        String message = "";
         try {
             if (event.isSetFailed()) {
                 WithdrawalFailed withdrawalFailed = new WithdrawalFailed();
