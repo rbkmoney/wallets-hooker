@@ -10,27 +10,20 @@ import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.wallets_hooker.converter.DestinationToDestinationMessageConverter;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationMessageDaoImpl;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
 
     private final DestinationMessageDaoImpl destinationMessageDao;
     private final DestinationToDestinationMessageConverter destinationToDestinationMessageConverter;
     private final ObjectMapper objectMapper;
 
-    private Filter filter;
-
-    public DestinationCreatedHandler(DestinationMessageDaoImpl destinationMessageDao, ObjectMapper objectMapper,
-                                     DestinationToDestinationMessageConverter destinationToDestinationMessageConverter
-    ) {
-        this.destinationMessageDao = destinationMessageDao;
-        this.objectMapper = objectMapper;
-        this.destinationToDestinationMessageConverter = destinationToDestinationMessageConverter;
-        filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));;
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {

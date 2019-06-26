@@ -2,8 +2,8 @@ package com.rbkmoney.wallets_hooker.dao.webhook;
 
 import com.rbkmoney.mapper.RecordRowMapper;
 import com.rbkmoney.wallets_hooker.dao.AbstractDao;
-import com.rbkmoney.wallets_hooker.dao.identity.IdentityKeyDao;
 import com.rbkmoney.wallets_hooker.dao.condition.ConditionParameterSource;
+import com.rbkmoney.wallets_hooker.dao.identity.IdentityKeyDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.IdentityKey;
@@ -19,8 +19,6 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,20 +45,14 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
         this.identityKeyDao = identityKeyDao;
         this.signer = signer;
         this.listRecordRowMapper = new RecordRowMapper<>(WEBHOOK, com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook.class);
-        this.webHookModelRowMapper = new RowMapper<WebHookModel>() {
-
-            @Override
-            public WebHookModel mapRow(ResultSet rs, int i) throws SQLException {
-                return WebHookModel.builder()
-                        .id(rs.getLong(WEBHOOK.ID.getName()))
-                        .enabled(rs.getBoolean(WEBHOOK.ENABLED.getName()))
-                        .identityId(rs.getString(WEBHOOK.IDENTITY_ID.getName()))
-                        .walletId(rs.getString(WEBHOOK.WALLET_ID.getName()))
-                        .url(rs.getString(WEBHOOK.URL.getName()))
-                        .pubKey(rs.getString(IDENTITY_KEY.PUB_KEY.getName()))
-                        .build();
-            }
-        };
+        this.webHookModelRowMapper = (rs, i) -> WebHookModel.builder()
+                .id(rs.getLong(WEBHOOK.ID.getName()))
+                .enabled(rs.getBoolean(WEBHOOK.ENABLED.getName()))
+                .identityId(rs.getString(WEBHOOK.IDENTITY_ID.getName()))
+                .walletId(rs.getString(WEBHOOK.WALLET_ID.getName()))
+                .url(rs.getString(WEBHOOK.URL.getName()))
+                .pubKey(rs.getString(IDENTITY_KEY.PUB_KEY.getName()))
+                .build();
     }
 
     @Override

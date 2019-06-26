@@ -16,7 +16,9 @@ import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalCreatedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -24,6 +26,7 @@ import java.util.List;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
     private final WithdrawalReferenceDao withdrawalReferenceDao;
@@ -33,19 +36,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     private final WithdrawalCreatedHookMessageGenerator withdrawalCreatedHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
-    private Filter filter;
-
-    public WithdrawalCreatedHandler(WithdrawalReferenceDao withdrawalReferenceDao, DestinationReferenceDao destinationReferenceDao,
-                                    WebHookDao webHookDao, WithdrawalCreatedHookMessageGenerator withdrawalCreatedHookMessageGenerator,
-                                    WebHookMessageSenderService webHookMessageSenderService, WalletReferenceDao walletReferenceDao) {
-        this.withdrawalReferenceDao = withdrawalReferenceDao;
-        this.destinationReferenceDao = destinationReferenceDao;
-        this.webHookDao = webHookDao;
-        this.walletReferenceDao = walletReferenceDao;
-        this.withdrawalCreatedHookMessageGenerator = withdrawalCreatedHookMessageGenerator;
-        this.webHookMessageSenderService = webHookMessageSenderService;
-        filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent event) {

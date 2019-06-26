@@ -10,8 +10,9 @@ import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
-import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationStatusChangeHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -19,25 +20,15 @@ import java.util.List;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DestinationUnauthorizedHandler extends AbstractDestinationEventHandler {
 
     private final DestinationReferenceDao destinationReferenceDao;
     private final DestinationStatusChangeHookMessageGenerator destinationStatusChangeHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
-
     private final WebHookDao webHookDao;
 
-    private Filter filter;
-
-    public DestinationUnauthorizedHandler(DestinationReferenceDao destinationReferenceDao, WebHookDao webHookDao,
-                                          DestinationStatusChangeHookMessageGenerator destinationStatusChangeHookMessageGenerator,
-                                          WebHookMessageSenderService webHookMessageSenderService) {
-        this.destinationReferenceDao = destinationReferenceDao;
-        this.webHookDao = webHookDao;
-        this.destinationStatusChangeHookMessageGenerator = destinationStatusChangeHookMessageGenerator;
-        this.webHookMessageSenderService = webHookMessageSenderService;
-        filter = new PathConditionFilter(new PathConditionRule("status_changed.failed", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.failed", new IsNullCondition().not()));
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {

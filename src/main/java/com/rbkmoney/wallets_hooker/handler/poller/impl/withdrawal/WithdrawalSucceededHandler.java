@@ -7,20 +7,17 @@ import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WithdrawalSucceededHandler extends AbstractWithdrawalEventHandler {
 
     private final WithdrawalChangeStatusHandler withdrawalChangeStatusHandler;
-    private Filter filter;
-
-    public WithdrawalSucceededHandler(WithdrawalChangeStatusHandler withdrawalChangeStatusHandler) {
-        this.withdrawalChangeStatusHandler = withdrawalChangeStatusHandler;
-        filter = new PathConditionFilter(new PathConditionRule("status_changed.succeeded", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.succeeded", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent event) {

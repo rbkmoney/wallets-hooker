@@ -8,21 +8,18 @@ import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.wallets_hooker.dao.wallet.WalletReferenceDao;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WalletAccountCreatedHandler extends AbstractWalletEventHandler {
 
     private final WalletReferenceDao walletReferenceDao;
 
-    private Filter filter;
-
-    public WalletAccountCreatedHandler(WalletReferenceDao walletReferenceDao) {
-        this.walletReferenceDao = walletReferenceDao;
-        filter = new PathConditionFilter(new PathConditionRule("account.created", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("account.created", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent event) {

@@ -12,7 +12,9 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationCreatedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +22,7 @@ import java.util.List;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class DestinationAccountChangeHandler extends AbstractDestinationEventHandler {
 
     private final DestinationReferenceDao destinationReferenceDao;
@@ -28,16 +31,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
     private final WebHookDao webHookDao;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
-    private Filter filter;
-
-    public DestinationAccountChangeHandler(DestinationReferenceDao destinationReferenceDao, DestinationMessageDaoImpl destinationMessageDao, DestinationCreatedHookMessageGenerator destinationCreatedHookMessageGenerator, WebHookDao webHookDao, WebHookMessageSenderService webHookMessageSenderService) {
-        this.destinationReferenceDao = destinationReferenceDao;
-        this.destinationMessageDao = destinationMessageDao;
-        this.destinationCreatedHookMessageGenerator = destinationCreatedHookMessageGenerator;
-        this.webHookDao = webHookDao;
-        this.webHookMessageSenderService = webHookMessageSenderService;
-        filter = new PathConditionFilter(new PathConditionRule("account", new IsNullCondition().not()));
-    }
+    private Filter filter = new PathConditionFilter(new PathConditionRule("account", new IsNullCondition().not()));
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {

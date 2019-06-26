@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
+package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
