@@ -11,6 +11,7 @@ import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.With
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -19,6 +20,9 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class WithdrawalChangeStatusHandler {
+
+    @Value("${waiting.reference.period}")
+    private int waitingPollPeriod;
 
     private final WithdrawalReferenceDao withdrawalReferenceDao;
     private final WebHookDao webHookDao;
@@ -40,15 +44,16 @@ public class WithdrawalChangeStatusHandler {
     private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {
         WithdrawalIdentityWalletReference reference = withdrawalReferenceDao.get(withdrawalId);
         while (reference == null) {
-            log.warn("Waiting withdrawal create: {} !", withdrawalId);
+            log.info("Waiting withdrawal create: {} !", withdrawalId);
             try {
-                Thread.sleep(500L);
+                Thread.sleep(waitingPollPeriod);
                 reference = withdrawalReferenceDao.get(withdrawalId);
             } catch (InterruptedException e) {
                 log.error("Error when waiting withdrawal create: {} e: ", withdrawalId, e);
                 Thread.currentThread().interrupt();
             }
         }
+        log.info("Handle withdrawal change status: {} ", withdrawalId);
         return reference;
     }
 

@@ -20,6 +20,7 @@ import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.With
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,6 +29,9 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
+
+    @Value("${waiting.reference.period}")
+    private int waitingPollPeriod;
 
     private final WithdrawalReferenceDao withdrawalReferenceDao;
     private final DestinationReferenceDao destinationReferenceDao;
@@ -43,10 +47,11 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         Withdrawal withdrawal = change.getCreated();
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
         WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
+
         while (destinationIdentityReference == null || walletIdentityReference == null) {
             log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
             try {
-                Thread.sleep(500L);
+                Thread.sleep(waitingPollPeriod);
                 destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
                 walletIdentityReference = walletReferenceDao.get(event.getSource());
             } catch (InterruptedException e) {
@@ -54,6 +59,9 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                 Thread.currentThread().interrupt();
             }
         }
+
+        log.info("Handle withdrawal create: {} ", withdrawal);
+
         createReference(withdrawal, destinationIdentityReference, event.getPayload().sequence);
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);

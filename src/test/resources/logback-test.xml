@@ -6,6 +6,5 @@
     <root level="WARN">
         <appender-ref ref="CONSOLE"/>
     </root>
-    <logger name="com.rbkmoney.woody" level="ALL"/>
-    <logger name="org.springframework.jdbc.core.JdbcTemplate" level="ALL"/>
+    <logger name="com.rbkmoney" level="ALL"/>
 </configuration>

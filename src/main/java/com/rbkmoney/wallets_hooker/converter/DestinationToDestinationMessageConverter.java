@@ -5,6 +5,7 @@ import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.swag.wallets.webhook.events.model.BankCard;
 import com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
+import com.rbkmoney.wallets_hooker.exception.UnknownResourceException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
@@ -39,7 +40,7 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
             cryptoWallet.setCurrency(CryptoWallet.CurrencyEnum.fromValue(resource.getCryptoWallet().currency.name()));
             destinationResource = cryptoWallet;
         } else {
-            throw new RuntimeException("");
+            throw new UnknownResourceException("Can't init destination with unknown resource");
         }
         return destinationResource;
     }

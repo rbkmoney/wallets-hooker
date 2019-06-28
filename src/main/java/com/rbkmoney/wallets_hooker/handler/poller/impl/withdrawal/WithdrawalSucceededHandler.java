@@ -21,6 +21,7 @@ public class WithdrawalSucceededHandler extends AbstractWithdrawalEventHandler {
 
     @Override
     public void handle(Change change, SinkEvent event) {
+        log.info("Handle withdrawal succeeded: {} ", change.getStatusChanged());
         String withdrawalId = event.getSource();
         withdrawalChangeStatusHandler.handleChangeStatus(change, event, withdrawalId, EventType.WITHDRAWAL_SUCCEEDED);
     }

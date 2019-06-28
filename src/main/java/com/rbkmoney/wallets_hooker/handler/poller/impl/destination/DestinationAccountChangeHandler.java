@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
 import com.rbkmoney.fistful.destination.AccountChange;
+import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
@@ -36,13 +37,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
         AccountChange account = change.getAccount();
-        DestinationIdentityReference reference = new DestinationIdentityReference();
-        reference.setDestinationId(sinkEvent.getSource());
-        String identity = account.getCreated().getIdentity();
-        reference.setIdentityId(identity);
-        reference.setEventId(sinkEvent.getSource());
-        reference.setSequenceId((long) sinkEvent.getPayload().getSequence());
-        destinationReferenceDao.create(reference);
+        String identity = createDestinationReference(sinkEvent, account);
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identity,
                 null, EventType.DESTINATION_CREATED);
@@ -53,6 +48,17 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
                 .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, sinkEvent.getId(), 0L))
                 .forEach(webHookMessageSenderService::send);
         log.info("Handle destination event account change with account: {} ", account);
+    }
+
+    private String createDestinationReference(SinkEvent sinkEvent, AccountChange account) {
+        DestinationIdentityReference reference = new DestinationIdentityReference();
+        reference.setDestinationId(sinkEvent.getSource());
+        String identity = account.getCreated().getIdentity();
+        reference.setIdentityId(identity);
+        reference.setEventId(sinkEvent.getSource());
+        reference.setSequenceId((long) sinkEvent.getPayload().getSequence());
+        destinationReferenceDao.create(reference);
+        return identity;
     }
 
     @Override

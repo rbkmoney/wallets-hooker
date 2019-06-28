@@ -67,3 +67,7 @@ withdrawal.polling:
 fistful.pollingEnabled: true
 
 merchant.callback.timeout: 10
+
+waiting:
+  reference:
+    period: 100

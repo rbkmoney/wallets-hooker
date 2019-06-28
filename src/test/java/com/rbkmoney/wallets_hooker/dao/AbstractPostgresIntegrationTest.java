@@ -20,7 +20,6 @@ import java.time.Duration;
 @EnableConfigurationProperties({DataSourceProperties.class})
 @ContextConfiguration(classes = {DataSourceAutoConfiguration.class},
         initializers = AbstractPostgresIntegrationTest.Initializer.class)
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 public abstract class AbstractPostgresIntegrationTest {
 
     @ClassRule

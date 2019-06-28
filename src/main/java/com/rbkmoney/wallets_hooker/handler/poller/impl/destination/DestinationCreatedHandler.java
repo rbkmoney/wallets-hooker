@@ -10,6 +10,7 @@ import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.wallets_hooker.converter.DestinationToDestinationMessageConverter;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationMessageDaoImpl;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
+import com.rbkmoney.wallets_hooker.exception.HandleEventException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -35,7 +36,7 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
             destinationMessageDao.create(destinationMessage);
         } catch (JsonProcessingException e) {
             log.error("Error when handle DestinationCreated change: {} e: ", change, e);
-            throw new RuntimeException("Error when handle DestinationCreated change", e);
+            throw new HandleEventException("Error when handle DestinationCreated change", e);
         }
     }
 
