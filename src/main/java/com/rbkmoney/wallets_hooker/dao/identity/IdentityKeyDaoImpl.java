@@ -43,11 +43,11 @@ public class IdentityKeyDaoImpl extends AbstractDao implements IdentityKeyDao {
     }
 
     @Override
-    public IdentityKey getByIdentity(String id) {
+    public IdentityKey getByIdentity(String identityId) {
         return fetchOne(getDslContext()
                         .select(IDENTITY_KEY.ID, IDENTITY_KEY.IDENTITY_ID, IDENTITY_KEY.PUB_KEY, IDENTITY_KEY.PRIV_KEY)
                         .from(IDENTITY_KEY)
-                        .where(IDENTITY_KEY.IDENTITY_ID.eq(id)),
+                        .where(IDENTITY_KEY.IDENTITY_ID.eq(identityId)),
                 listRecordRowMapper);
     }
 }

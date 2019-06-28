@@ -7,6 +7,7 @@ import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
+import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
@@ -51,6 +52,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
             }
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage e: ", e);
+            throw new GenerateMessageException("Error when generate webhookMessage", e);
         }
         return message;
     }

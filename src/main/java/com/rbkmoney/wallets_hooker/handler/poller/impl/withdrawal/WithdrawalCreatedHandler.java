@@ -44,7 +44,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
         WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
         while (destinationIdentityReference == null || walletIdentityReference == null) {
-            log.warn("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
+            log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
             try {
                 Thread.sleep(500L);
                 destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());

@@ -13,6 +13,7 @@ public class WebHookMessageGeneratorServiceImpl<T> implements HookMessageGenerat
         WebhookMessage webhookMessage = new WebhookMessage();
         webhookMessage.setContentType(ContentType.APPLICATION_JSON.getMimeType());
         webhookMessage.setEventId(eventId);
+        webhookMessage.setWebhookId(model.getId());
         webhookMessage.setParentEventId(parentId);
         webhookMessage.setUrl(model.getUrl());
         return webhookMessage;

@@ -8,6 +8,6 @@ public interface IdentityKeyDao {
 
     IdentityKey get(Long id);
 
-    IdentityKey getByIdentity(String id);
+    IdentityKey getByIdentity(String identityId);
 
 }
