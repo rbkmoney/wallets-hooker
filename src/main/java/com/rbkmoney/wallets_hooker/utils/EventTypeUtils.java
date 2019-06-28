@@ -17,7 +17,7 @@ public class EventTypeUtils {
                 .collect(Collectors.toSet());
     }
 
-    public static EventType resolveEventType(com.rbkmoney.fistful.webhooker.EventType type) {
+    private static EventType resolveEventType(com.rbkmoney.fistful.webhooker.EventType type) {
         if (type.isSetWithdrawal()) {
             WithdrawalEventType withdrawal = type.getWithdrawal();
             if (withdrawal.isSetFailed()) {
