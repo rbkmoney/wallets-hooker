@@ -14,6 +14,7 @@ import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,15 +26,19 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
+    @Value("${parent.not.exist.id}")
+    private Long parentIsNotExistId;
+
+    @Override
+    public WebhookMessage generate(StatusChange event, WebHookModel model, Long eventId) {
+        return generate(event, model, eventId, parentIsNotExistId);
+    }
+
     @Override
     public WebhookMessage generate(StatusChange statusChange, WebHookModel model, Long eventId, Long parentId) {
         try {
             WebhookMessage webhookMessage = generatorService.generate(statusChange, model, eventId, parentId);
-            if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
-                webhookMessage.setParentEventId(parentId);
-            } else {
-                webhookMessage.setParentEventId(0);
-            }
+            webhookMessage.setParentEventId(initPatenId(model, parentId));
             String message = generateMessage(statusChange);
             additionalHeadersGenerator.generate(model, message);
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
@@ -44,6 +49,13 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
             log.error("Error when generate webhookMessage e: ", e);
             throw new GenerateMessageException("Error when generate webhookMessage", e);
         }
+    }
+
+    private Long initPatenId(WebHookModel model, Long parentId) {
+        if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
+            return parentId;
+        }
+        return parentIsNotExistId;
     }
 
     private String generateMessage(StatusChange statusChange) throws JsonProcessingException {

@@ -13,6 +13,7 @@ import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -23,6 +24,14 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
     private final WebHookMessageGeneratorServiceImpl<Withdrawal> generatorService;
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
+
+    @Value("${parent.not.exist.id}")
+    private Long parentIsNotExistId;
+
+    @Override
+    public WebhookMessage generate(Withdrawal event, WebHookModel model, Long eventId) {
+        return generate(event, model, eventId, parentIsNotExistId);
+    }
 
     @Override
     public WebhookMessage generate(Withdrawal event, WebHookModel model, Long eventId, Long parentId) {

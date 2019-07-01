@@ -14,6 +14,7 @@ import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Slf4j
@@ -25,15 +26,19 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
+    @Value("${parent.not.exist.id}")
+    private Long parentIsNotExistId;
+
+    @Override
+    public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, Long eventId) {
+        return generate(event, model, eventId, parentIsNotExistId);
+    }
+
     @Override
     public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, Long eventId, Long parentId) {
         try {
             WebhookMessage webhookMessage = generatorService.generate(event, model, eventId, parentId);
-            if (model.getEventTypes() != null && model.getEventTypes().contains(EventType.WITHDRAWAL_CREATED)) {
-                webhookMessage.setParentEventId(parentId);
-            } else {
-                webhookMessage.setParentEventId(0);
-            }
+            webhookMessage.setParentEventId(initPatenId(model, parentId));
             String message = initRequestBody(event);
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
@@ -43,6 +48,13 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             log.error("Error when generate webhookMessage e: ", e);
             throw new GenerateMessageException("WithdrawalStatusChanged error when generate webhookMessage!", e);
         }
+    }
+
+    private Long initPatenId(WebHookModel model, Long parentId) {
+        if (model.getEventTypes() != null && model.getEventTypes().contains(EventType.WITHDRAWAL_CREATED)) {
+            return parentId;
+        }
+        return parentIsNotExistId;
     }
 
     private String initRequestBody(WithdrawalStatus event) throws JsonProcessingException {

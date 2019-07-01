@@ -72,7 +72,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                     .stream()
                     .flatMap(Collection::stream)
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(event.getSource()))
-                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId(), 0L))
+                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalCreatedHandler error when handle change: {}, event: {} e: ", change, event, e);

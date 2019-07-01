@@ -45,7 +45,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
         DestinationMessage destinationMessage = destinationMessageDao.get(sinkEvent.getSource());
 
         webHookModels.stream()
-                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, sinkEvent.getId(), 0L))
+                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, sinkEvent.getId()))
                 .forEach(webHookMessageSenderService::send);
         log.info("Handle destination event account change with account: {} ", account);
     }
