@@ -5,10 +5,13 @@ import com.rbkmoney.fistful.webhooker.WebhookParams;
 import com.rbkmoney.fistful.webhooker.WithdrawalEventType;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.UnknownEventTypeException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventTypeUtils {
 
     public static Set<EventType> convertEventTypes(WebhookParams event) {

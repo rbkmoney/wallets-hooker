@@ -72,5 +72,4 @@ public class WaitingDestinationAndWalletHandlerTest extends AbstractPostgresInte
         latch.await();
     }
 
-
 }

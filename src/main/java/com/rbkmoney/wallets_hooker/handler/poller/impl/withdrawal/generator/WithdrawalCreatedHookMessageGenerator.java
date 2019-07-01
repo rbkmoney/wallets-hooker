@@ -6,6 +6,7 @@ import com.rbkmoney.fistful.base.Cash;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalBody;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
+import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
@@ -25,21 +26,23 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
 
     @Override
     public WebhookMessage generate(Withdrawal event, WebHookModel model, Long eventId, Long parentId) {
-        WebhookMessage webhookMessage = generatorService.generate(event, model, eventId, parentId);
-        com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
-        withdrawal.setDestination(event.getDestination());
-        withdrawal.setId(event.getId());
-        withdrawal.setWallet(event.getSource());
-        withdrawal.setBody(initBody(event));
         try {
+            WebhookMessage webhookMessage = generatorService.generate(event, model, eventId, parentId);
+            com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
+            withdrawal.setDestination(event.getDestination());
+            withdrawal.setId(event.getId());
+            withdrawal.setWallet(event.getSource());
+            withdrawal.setBody(initBody(event));
             String requestBody = objectMapper.writeValueAsString(withdrawal);
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
+            webhookMessage.setParentEventId(parentId);
+            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+            return webhookMessage;
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage event: {} model: {} eventId: {} e: ", event, model, eventId, e);
+            throw new GenerateMessageException("WithdrawalCreated error when generate webhookMessage!", e);
         }
-        webhookMessage.setParentEventId(parentId);
-        return webhookMessage;
     }
 
     private WithdrawalBody initBody(Withdrawal event) {

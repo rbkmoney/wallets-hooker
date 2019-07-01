@@ -16,6 +16,7 @@ import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
+import com.rbkmoney.wallets_hooker.exception.HandleEventException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalCreatedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -44,36 +47,46 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
     @Override
     public void handle(Change change, SinkEvent event) {
-        Withdrawal withdrawal = change.getCreated();
-        DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-        WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
+        try {
+            Withdrawal withdrawal = change.getCreated();
+            DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
+            WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
 
-        while (destinationIdentityReference == null || walletIdentityReference == null) {
-            log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
-            try {
-                Thread.sleep(waitingPollPeriod);
-                destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-                walletIdentityReference = walletReferenceDao.get(event.getSource());
-            } catch (InterruptedException e) {
-                log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), event.getSource(), e);
-                Thread.currentThread().interrupt();
+            while (destinationIdentityReference == null || walletIdentityReference == null) {
+                log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
+                try {
+                    Thread.sleep(waitingPollPeriod);
+                    destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
+                    walletIdentityReference = walletReferenceDao.get(event.getSource());
+                } catch (InterruptedException e) {
+                    log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), event.getSource(), e);
+                    Thread.currentThread().interrupt();
+                }
             }
+
+            log.info("Handle withdrawal create: {} ", withdrawal);
+            createReference(withdrawal, destinationIdentityReference, event.getPayload().sequence);
+
+            List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
+            Optional.ofNullable(webHookModels)
+                    .stream()
+                    .flatMap(Collection::stream)
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(event.getSource()))
+                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId(), 0L))
+                    .forEach(webHookMessageSenderService::send);
+        } catch (Exception e) {
+            log.error("WithdrawalCreatedHandler error when handle change: {}, event: {} e: ", change, event, e);
+            throw new HandleEventException("WithdrawalCreatedHandler error when handle change!", e);
         }
+    }
 
-        log.info("Handle withdrawal create: {} ", withdrawal);
-
-        createReference(withdrawal, destinationIdentityReference, event.getPayload().sequence);
-
+    private List<WebHookModel> findWebhookModels(DestinationIdentityReference destinationIdentityReference, WalletIdentityReference walletIdentityReference) {
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
         if (!destinationIdentityReference.getIdentityId().equals(walletIdentityReference.getIdentityId())) {
             List<WebHookModel> webHookModelsWallets = webHookDao.getModelByIdentityAndWalletId(walletIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
             webHookModels.addAll(webHookModelsWallets);
         }
-
-        webHookModels.stream()
-                .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(event.getSource()))
-                .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId(), 0L))
-                .forEach(webHookMessageSenderService::send);
+        return webHookModels;
     }
 
     private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference, int sequenceId) {

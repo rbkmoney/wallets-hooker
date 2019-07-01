@@ -7,6 +7,7 @@ import com.rbkmoney.wallets_hooker.dao.withdrawal.WithdrawalReferenceDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
+import com.rbkmoney.wallets_hooker.exception.HandleEventException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalStatusChangedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
@@ -30,15 +31,20 @@ public class WithdrawalChangeStatusHandler {
     private final WebHookMessageSenderService webHookMessageSenderService;
 
     public void handleChangeStatus(Change change, SinkEvent event, String withdrawalId, EventType eventType) {
-        WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), null, eventType);
-        Long parentId = reference.getSequenceId();
-        String walletId = reference.getWalletId();
-        webHookModels.stream()
-                .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
-                .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                        event.getId(), parentId))
-                .forEach(webHookMessageSenderService::send);
+        try {
+            WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
+            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), null, eventType);
+            Long parentId = reference.getSequenceId();
+            String walletId = reference.getWalletId();
+            webHookModels.stream()
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                    .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
+                            event.getId(), parentId))
+                    .forEach(webHookMessageSenderService::send);
+        } catch (Exception e) {
+            log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
+            throw new HandleEventException("WithdrawalChangeStatusHandler error when handle change!", e);
+        }
     }
 
     private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {

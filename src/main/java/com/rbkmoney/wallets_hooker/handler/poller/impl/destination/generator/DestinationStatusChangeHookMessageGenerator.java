@@ -27,32 +27,33 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
 
     @Override
     public WebhookMessage generate(StatusChange statusChange, WebHookModel model, Long eventId, Long parentId) {
-        WebhookMessage webhookMessage = generatorService.generate(statusChange, model, eventId, parentId);
-        if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
-            webhookMessage.setParentEventId(parentId);
-        } else {
-            webhookMessage.setParentEventId(0);
-        }
-        String message = generateMessage(statusChange);
-        additionalHeadersGenerator.generate(model, message);
-        webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
-        webhookMessage.setRequestBody(message.getBytes());
-        return webhookMessage;
-    }
-
-    private String generateMessage(StatusChange statusChange) {
-        String message = "";
         try {
-            if (statusChange.getChanged().isSetAuthorized()) {
-                DestinationAuthorized destinationAuthorized = new DestinationAuthorized();
-                message = objectMapper.writeValueAsString(destinationAuthorized);
-            } else if (statusChange.getChanged().isSetUnauthorized()) {
-                DestinationUnauthorized destination = new DestinationUnauthorized();
-                message = objectMapper.writeValueAsString(destination);
+            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, eventId, parentId);
+            if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
+                webhookMessage.setParentEventId(parentId);
+            } else {
+                webhookMessage.setParentEventId(0);
             }
-        } catch (JsonProcessingException e) {
+            String message = generateMessage(statusChange);
+            additionalHeadersGenerator.generate(model, message);
+            webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
+            webhookMessage.setRequestBody(message.getBytes());
+            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+            return webhookMessage;
+        } catch (Exception e) {
             log.error("Error when generate webhookMessage e: ", e);
             throw new GenerateMessageException("Error when generate webhookMessage", e);
+        }
+    }
+
+    private String generateMessage(StatusChange statusChange) throws JsonProcessingException {
+        String message = "";
+        if (statusChange.getChanged().isSetAuthorized()) {
+                DestinationAuthorized destinationAuthorized = new DestinationAuthorized();
+                message = objectMapper.writeValueAsString(destinationAuthorized);
+        } else if (statusChange.getChanged().isSetUnauthorized()) {
+                DestinationUnauthorized destination = new DestinationUnauthorized();
+                message = objectMapper.writeValueAsString(destination);
         }
         return message;
     }

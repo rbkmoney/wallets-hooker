@@ -13,7 +13,6 @@ public class EventTypeUtilsTest {
 
     @Test
     public void convertEventTypes() {
-
         WebhookParams event = new WebhookParams();
         EventFilter eventFilter = new EventFilter();
         LinkedHashSet<EventType> types = new LinkedHashSet<>();
