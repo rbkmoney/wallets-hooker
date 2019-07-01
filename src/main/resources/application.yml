@@ -71,3 +71,5 @@ merchant.callback.timeout: 10
 waiting:
   reference:
     period: 100
+
+parent.not.exist.id: -1
