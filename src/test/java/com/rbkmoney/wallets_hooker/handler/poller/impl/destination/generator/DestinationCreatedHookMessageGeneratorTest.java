@@ -1,7 +1,12 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
+import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
+import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
@@ -11,13 +16,26 @@ import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
+import org.apache.http.entity.ContentType;
+import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.Set;
 
 public class DestinationCreatedHookMessageGeneratorTest {
 
     public static final long EVENT_ID = 1L;
+    public static final String URL = "/url";
+    public static final String WALLET_ID = "wallet_id";
+    public static final String IDENTITY_ID = "identity_id";
+    public static final String TEST = "test";
+    public static final String SOURCE_ID = "sourceId";
+    public static final String DESTINATION_ID = "destination_id";
+
+    ObjectMapper objectMapper = new ObjectMapper()
+            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
+            .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
 
     Signer signer = new AsymSigner();
 
@@ -29,15 +47,14 @@ public class DestinationCreatedHookMessageGeneratorTest {
                     new AdditionalHeadersGenerator(signer));
 
     @Test
-    public void generate() {
+    public void generate() throws IOException {
         WebHookModel model = new WebHookModel();
         model.setId(1L);
         model.setEventTypes(Set.of(EventType.DESTINATION_CREATED));
         model.setEnabled(true);
-        model.setIdentityId("identity_id");
-        model.setUrl("/url");
-        model.setWalletId("wallet_id");
-        model.setPubKey("test");
+        model.setIdentityId(IDENTITY_ID);
+        model.setUrl(URL);
+        model.setWalletId(WALLET_ID);
 
         KeyPair keyPair = signer.generateKeys();
         model.setPrivateKey(keyPair.getPrivKey());
@@ -45,13 +62,27 @@ public class DestinationCreatedHookMessageGeneratorTest {
 
         DestinationMessage event = new DestinationMessage();
         Destination destination = new Destination();
+        destination.setIdentity(IDENTITY_ID);
+        destination.setId(DESTINATION_ID);
+        destination.setResource(new DestinationResource().type(DestinationResource.TypeEnum.BANKCARD));
+        destination.setCurrency("RUB");
 
-        event.setMessage("{}");
-        event.setDestinationId("destination_id");
+
+        event.setMessage(objectMapper.writeValueAsString(destination));
+        event.setDestinationId(DESTINATION_ID);
 
         WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(event,
-                model, EVENT_ID, 0L);
+                model, SOURCE_ID, EVENT_ID, 0L, "2019-07-02T08:43:42Z");
 
+        Assert.assertEquals(EVENT_ID, generate.getEventId());
+        Assert.assertEquals(URL, generate.getUrl());
+        Assert.assertEquals(ContentType.APPLICATION_JSON.getMimeType(), generate.getContentType());
+        Assert.assertEquals(SOURCE_ID, generate.getSourceId());
+        Assert.assertNotNull(generate.getAdditionalHeaders().get(AdditionalHeadersGenerator.SIGNATURE_HEADER));
+        byte[] requestBody = generate.getRequestBody();
+
+        DestinationCreated value = objectMapper.readValue(requestBody, DestinationCreated.class);
+        Assert.assertNotNull(IDENTITY_ID, value.getDestination().getIdentity());
 
     }
 }

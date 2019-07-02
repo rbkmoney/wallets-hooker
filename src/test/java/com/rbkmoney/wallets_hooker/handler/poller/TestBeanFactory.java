@@ -28,6 +28,7 @@ public class TestBeanFactory {
     public static final String IDENTITY_ID = "identityId";
     public static final String DESTINATION = "destination";
     public static final String WITHDRAWAL_ID = "withdrawalId";
+    public static final long WALLET_ID = 21L;
 
     @NotNull
     public static com.rbkmoney.fistful.destination.SinkEvent createDestination() {
@@ -50,6 +51,7 @@ public class TestBeanFactory {
         payload.setSequence(1);
         sinkEvent.setPayload(payload);
         sinkEvent.setSource(DESTINATION);
+        sinkEvent.setId(1L);
         return sinkEvent;
     }
 
@@ -71,6 +73,7 @@ public class TestBeanFactory {
         payload.setSequence(1);
         sinkEvent.setPayload(payload);
         sinkEvent.setSource(DESTINATION);
+        sinkEvent.setId(2L);
         return sinkEvent;
     }
 
@@ -97,6 +100,7 @@ public class TestBeanFactory {
         eventSinkPayload.setChanges(changesWithdrawal);
         withdrawalSink.setPayload(eventSinkPayload);
         withdrawalSink.setSource(SOURCE_WALLET_ID);
+        withdrawalSink.setId(66L);
         return withdrawalSink;
     }
 
@@ -120,6 +124,7 @@ public class TestBeanFactory {
         payload.setChanges(changes);
         payload.setSequence(1);
         sinkEvent.setPayload(payload);
+        sinkEvent.setId(WALLET_ID);
         return sinkEvent;
     }
 
@@ -137,6 +142,7 @@ public class TestBeanFactory {
         changes.add(change);
         payload.setChanges(changes);
         sinkEvent.setPayload(payload);
+        sinkEvent.setId(67L);
         return sinkEvent;
     }
 

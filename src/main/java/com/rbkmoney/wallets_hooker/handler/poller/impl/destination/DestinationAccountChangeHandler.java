@@ -42,10 +42,12 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identity,
                 null, EventType.DESTINATION_CREATED);
 
-        DestinationMessage destinationMessage = destinationMessageDao.get(sinkEvent.getSource());
+        String source = sinkEvent.getSource();
+        DestinationMessage destinationMessage = destinationMessageDao.get(source);
 
         webHookModels.stream()
-                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, sinkEvent.getId()))
+                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, source,
+                        sinkEvent.getId(), sinkEvent.getCreatedAt()))
                 .forEach(webHookMessageSenderService::send);
         log.info("Handle destination event account change with account: {} ", account);
     }

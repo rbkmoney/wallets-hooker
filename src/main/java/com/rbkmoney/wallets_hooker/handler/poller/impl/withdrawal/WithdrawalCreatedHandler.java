@@ -46,36 +46,37 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
 
     @Override
-    public void handle(Change change, SinkEvent event) {
+    public void handle(Change change, SinkEvent sinkEvent) {
         try {
             Withdrawal withdrawal = change.getCreated();
             DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-            WalletIdentityReference walletIdentityReference = walletReferenceDao.get(event.getSource());
+            WalletIdentityReference walletIdentityReference = walletReferenceDao.get(sinkEvent.getSource());
 
             while (destinationIdentityReference == null || walletIdentityReference == null) {
-                log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), event.getSource());
+                log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), sinkEvent.getSource());
                 try {
                     Thread.sleep(waitingPollPeriod);
                     destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-                    walletIdentityReference = walletReferenceDao.get(event.getSource());
+                    walletIdentityReference = walletReferenceDao.get(sinkEvent.getSource());
                 } catch (InterruptedException e) {
-                    log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), event.getSource(), e);
+                    log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), sinkEvent.getSource(), e);
                     Thread.currentThread().interrupt();
                 }
             }
 
             log.info("Handle withdrawal create: {} ", withdrawal);
-            createReference(withdrawal, destinationIdentityReference, event.getPayload().sequence);
+            createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().sequence);
 
             List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
             Optional.ofNullable(webHookModels)
                     .stream()
                     .flatMap(Collection::stream)
-                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(event.getSource()))
-                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, event.getId()))
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(sinkEvent.getSource()))
+                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawal.getId(),
+                            sinkEvent.getId(), sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
-            log.error("WithdrawalCreatedHandler error when handle change: {}, event: {} e: ", change, event, e);
+            log.error("WithdrawalCreatedHandler error when handle change: {}, sinkEvent: {} e: ", change, sinkEvent, e);
             throw new HandleEventException("WithdrawalCreatedHandler error when handle change!", e);
         }
     }

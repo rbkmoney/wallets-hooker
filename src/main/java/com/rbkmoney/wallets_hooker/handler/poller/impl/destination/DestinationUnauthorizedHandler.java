@@ -39,8 +39,8 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         StatusChange status = change.getStatus();
         webHookModels.stream()
-                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook,
-                        sinkEvent.getId(), destinationIdentityReference.getSequenceId()))
+                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
+                        sinkEvent.getId(), destinationIdentityReference.getSequenceId(), sinkEvent.getCreatedAt()))
                 .forEach(webHookMessageSenderService::send);
     }
 

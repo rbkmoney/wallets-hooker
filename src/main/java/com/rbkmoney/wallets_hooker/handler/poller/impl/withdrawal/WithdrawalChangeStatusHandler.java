@@ -30,7 +30,7 @@ public class WithdrawalChangeStatusHandler {
     private final WithdrawalStatusChangedHookMessageGenerator withdrawalStatusChangedHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
-    public void handleChangeStatus(Change change, SinkEvent event, String withdrawalId, EventType eventType) {
+    public void handleChangeStatus(Change change, SinkEvent sinkEvent, String withdrawalId, EventType eventType) {
         try {
             WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
             List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), null, eventType);
@@ -39,7 +39,7 @@ public class WithdrawalChangeStatusHandler {
             webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
                     .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                            event.getId(), parentId))
+                            withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
