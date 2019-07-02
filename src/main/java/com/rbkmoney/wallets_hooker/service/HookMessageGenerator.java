@@ -5,8 +5,8 @@ import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 
 public interface HookMessageGenerator<T> {
 
-    WebhookMessage generate(T event, WebHookModel model, Long eventId);
+    WebhookMessage generate(T event, WebHookModel model, String sourceId, Long eventId, String createdAt);
 
-    WebhookMessage generate(T event, WebHookModel model, Long eventId, Long parentId);
+    WebhookMessage generate(T event, WebHookModel model, String sourceId, Long eventId, Long parentId, String createdAt);
 
 }

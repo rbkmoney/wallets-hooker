@@ -28,14 +28,15 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
     private Long parentIsNotExistId;
 
     @Override
-    public WebhookMessage generate(DestinationMessage event, WebHookModel model, Long eventId) {
-        return generate(event, model, eventId, parentIsNotExistId);
+    public WebhookMessage generate(DestinationMessage event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
+        return generate(event, model, sourceId, eventId, parentIsNotExistId, createdAt);
     }
 
     @Override
-    public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, Long eventId, Long parentId) {
+    public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String sourceId,
+                                   Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, eventId, parentId);
+            WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, sourceId, eventId, parentId, createdAt);
             DestinationCreated destinationCreated = new DestinationCreated();
             Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());

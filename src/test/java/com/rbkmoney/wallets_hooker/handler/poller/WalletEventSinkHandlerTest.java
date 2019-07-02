@@ -3,7 +3,9 @@ package com.rbkmoney.wallets_hooker.handler.poller;
 import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
+import com.rbkmoney.wallets_hooker.constant.EventTopic;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
+import com.rbkmoney.wallets_hooker.dao.EventLogDao;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
@@ -36,6 +38,8 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
     DestinationEventSinkHandler destinationEventSinkHandler;
     @Autowired
     WebHookDao webHookDao;
+    @Autowired
+    EventLogDao eventLogDao;
 
     @MockBean
     WebHookMessageSenderService webHookMessageSenderService;
@@ -67,6 +71,15 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
         Assert.assertEquals(action, EventAction.CONTINUE);
         Mockito.verify(webHookMessageSenderService, Mockito.times(2))
                 .send(any());
+
+        Long lastEventId = eventLogDao.getLastEventId(EventTopic.DESTINATION, 0L);
+        Assert.assertEquals(2L, lastEventId.longValue());
+
+        lastEventId = eventLogDao.getLastEventId(EventTopic.WALLET, 0L);
+        Assert.assertEquals(TestBeanFactory.WALLET_ID, lastEventId.longValue());
+
+        lastEventId = eventLogDao.getLastEventId(EventTopic.WITHDRAWAL, 0L);
+        Assert.assertEquals(67L, lastEventId.longValue());
     }
 
 }
