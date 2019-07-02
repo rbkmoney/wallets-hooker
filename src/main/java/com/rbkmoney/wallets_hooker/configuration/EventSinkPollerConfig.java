@@ -1,11 +1,8 @@
 package com.rbkmoney.wallets_hooker.configuration;
 
-import com.rbkmoney.eventstock.client.*;
-import com.rbkmoney.eventstock.client.poll.*;
-import com.rbkmoney.wallets_hooker.handler.poller.IdentityEventSinkHandler;
-import com.rbkmoney.wallets_hooker.handler.poller.WalletEventSinkHandler;
-import com.rbkmoney.wallets_hooker.handler.poller.WithdrawalEventSinkHandler;
-import com.rbkmoney.woody.api.ClientBuilder;
+import com.rbkmoney.eventstock.client.EventPublisher;
+import com.rbkmoney.eventstock.client.poll.FistfulPollingEventPublisherBuilder;
+import com.rbkmoney.wallets_hooker.handler.poller.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,24 +32,6 @@ public class EventSinkPollerConfig {
     }
 
     @Bean
-    public EventPublisher identityEventPublisher(
-            IdentityEventSinkHandler identityEventSinkHandler,
-            @Value("${identity.polling.url}") Resource resource,
-            @Value("${identity.polling.delay}") int pollDelay,
-            @Value("${identity.polling.retryDelay}") int retryDelay,
-            @Value("${identity.polling.maxPoolSize}") int maxPoolSize
-    ) throws IOException {
-        return new FistfulPollingEventPublisherBuilder()
-                .withIdentityServiceAdapter()
-                .withURI(resource.getURI())
-                .withEventHandler(identityEventSinkHandler)
-                .withMaxPoolSize(maxPoolSize)
-                .withEventRetryDelay(retryDelay)
-                .withPollDelay(pollDelay)
-                .build();
-    }
-
-    @Bean
     public EventPublisher withdrawalEventPublisher(
             WithdrawalEventSinkHandler withdrawalEventSinkHandler,
             @Value("${withdrawal.polling.url}") Resource resource,
@@ -64,6 +43,24 @@ public class EventSinkPollerConfig {
                 .withWithdrawalServiceAdapter()
                 .withURI(resource.getURI())
                 .withEventHandler(withdrawalEventSinkHandler)
+                .withMaxPoolSize(maxPoolSize)
+                .withEventRetryDelay(retryDelay)
+                .withPollDelay(pollDelay)
+                .build();
+    }
+
+    @Bean
+    public EventPublisher destinationEventPublisher(
+            DestinationEventSinkHandler destinationEventSinkHandler,
+            @Value("${destination.polling.url}") Resource resource,
+            @Value("${destination.polling.delay}") int pollDelay,
+            @Value("${destination.polling.retryDelay}") int retryDelay,
+            @Value("${destination.polling.maxPoolSize}") int maxPoolSize
+    ) throws IOException {
+        return new FistfulPollingEventPublisherBuilder()
+                .withWithdrawalServiceAdapter()
+                .withURI(resource.getURI())
+                .withEventHandler(destinationEventSinkHandler)
                 .withMaxPoolSize(maxPoolSize)
                 .withEventRetryDelay(retryDelay)
                 .withPollDelay(pollDelay)

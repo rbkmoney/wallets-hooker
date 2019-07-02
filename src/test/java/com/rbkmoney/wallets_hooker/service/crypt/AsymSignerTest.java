@@ -11,10 +11,6 @@ import java.util.Base64;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by inalarsanukaev on 14.12.16.
- */
-
 public class AsymSignerTest {
     @Test
     public void test() throws Exception {
