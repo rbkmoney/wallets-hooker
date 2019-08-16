@@ -2,6 +2,7 @@ package com.rbkmoney.wallets_hooker.configuration;
 
 
 import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
+import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.config.SslConfigs;
@@ -39,7 +40,7 @@ public class KafkaConfig {
     private boolean kafkaSslEnable;
 
     @Bean
-    public ProducerFactory<String, TBase> producerFactory() {
+    public ProducerFactory<String, WebhookMessage> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -62,7 +63,7 @@ public class KafkaConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, TBase> kafkaTemplate() {
+    public KafkaTemplate<String, WebhookMessage> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }
