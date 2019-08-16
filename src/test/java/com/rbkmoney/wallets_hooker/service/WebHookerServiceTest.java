@@ -50,18 +50,4 @@ public class WebHookerServiceTest {
         Assert.assertEquals(id, listWebHooks.get(0).identity_id);
     }
 
-    @Test
-    public void get() {
-
-    }
-
-    @Test
-    public void create() {
-
-    }
-
-    @Test
-    public void delete() {
-
-    }
 }
