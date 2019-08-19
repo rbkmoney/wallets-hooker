@@ -62,7 +62,7 @@ withdrawal.polling:
   maxPoolSize: 1
   delay: 5000
   retryDelay: 5000
-  lastEventId: 1859
+  lastEventId: 0
 
 fistful.pollingEnabled: true
 
@@ -70,6 +70,6 @@ merchant.callback.timeout: 10
 
 waiting:
   reference:
-    period: 100
+    period: 200
 
 parent.not.exist.id: -1
