@@ -62,7 +62,7 @@ withdrawal.polling:
   maxPoolSize: 1
   delay: 5000
   retryDelay: 5000
-  lastEventId: 0
+  lastEventId: 1859
 
 fistful.pollingEnabled: true
 
