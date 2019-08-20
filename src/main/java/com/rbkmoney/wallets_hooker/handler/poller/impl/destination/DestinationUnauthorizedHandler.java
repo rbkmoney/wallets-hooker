@@ -42,6 +42,9 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
                 .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
                         sinkEvent.getId(), destinationIdentityReference.getSequenceId(), sinkEvent.getCreatedAt()))
                 .forEach(webHookMessageSenderService::send);
+
+        log.info("Finish handling destination authorized, destinationId={}, identityId={} saved to db.",
+                sinkEvent.getSource(), destinationIdentityReference.getIdentityId());
     }
 
     @Override

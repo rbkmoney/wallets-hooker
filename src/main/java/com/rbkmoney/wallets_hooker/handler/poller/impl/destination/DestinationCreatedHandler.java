@@ -29,11 +29,14 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
         try {
+            String destinationId = sinkEvent.getSource();
             Destination destination = destinationToDestinationMessageConverter.convert(change.getCreated());
+            destination.setId(destinationId);
             DestinationMessage destinationMessage = new DestinationMessage();
-            destinationMessage.setDestinationId(change.getCreated().getId());
+            destinationMessage.setDestinationId(destinationId);
             destinationMessage.setMessage(objectMapper.writeValueAsString(destination));
             destinationMessageDao.create(destinationMessage);
+            log.info("Finish handling destination created, destinationId={} saved to db.", destinationId);
         } catch (JsonProcessingException e) {
             log.error("Error when handle DestinationCreated change: {} e: ", change, e);
             throw new HandleEventException("Error when handle DestinationCreated change", e);
