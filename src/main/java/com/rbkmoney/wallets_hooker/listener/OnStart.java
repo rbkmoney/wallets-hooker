@@ -28,7 +28,7 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
     @Value("${withdrawal.polling.lastEventId}")
     private Long withdrawalLastEventId;
 
-    @Value("${wallet.polling.lastEventId}")
+    @Value("${destination.polling.lastEventId}")
     private Long destinationLastEventId;
 
     @Value("${wallet.polling.lastEventId}")
