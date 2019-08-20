@@ -58,7 +58,7 @@ public class EventSinkPollerConfig {
             @Value("${destination.polling.maxPoolSize}") int maxPoolSize
     ) throws IOException {
         return new FistfulPollingEventPublisherBuilder()
-                .withWithdrawalServiceAdapter()
+                .withDestinationServiceAdapter()
                 .withURI(resource.getURI())
                 .withEventHandler(destinationEventSinkHandler)
                 .withMaxPoolSize(maxPoolSize)
