@@ -48,32 +48,36 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     @Override
     public void handle(Change change, SinkEvent sinkEvent) {
         try {
+            long eventId = sinkEvent.getId();
+            String withdrawalId = sinkEvent.getSource();
             Withdrawal withdrawal = change.getCreated();
-            DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-            WalletIdentityReference walletIdentityReference = walletReferenceDao.get(sinkEvent.getSource());
+            String destinationId = withdrawal.getDestination();
+            DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
+            String walletId = withdrawal.getSource();
+            WalletIdentityReference walletIdentityReference = walletReferenceDao.get(walletId);
 
             while (destinationIdentityReference == null || walletIdentityReference == null) {
-                log.info("Waiting destination: {} or wallet: {} !", withdrawal.getDestination(), sinkEvent.getSource());
+                log.info("Waiting destination: {} or wallet: {} !", destinationId, walletId);
                 try {
                     Thread.sleep(waitingPollPeriod);
-                    destinationIdentityReference = destinationReferenceDao.get(withdrawal.getDestination());
-                    walletIdentityReference = walletReferenceDao.get(sinkEvent.getSource());
+                    destinationIdentityReference = destinationReferenceDao.get(destinationId);
+                    walletIdentityReference = walletReferenceDao.get(walletId);
                 } catch (InterruptedException e) {
-                    log.error("Error when waiting destination: {} or wallet: {} e: ", withdrawal.getDestination(), sinkEvent.getSource(), e);
+                    log.error("Error when waiting destination: {} or wallet: {} e: ", destinationId, walletId, e);
                     Thread.currentThread().interrupt();
                 }
             }
 
-            log.info("Handle withdrawal create: {} ", withdrawal);
-            createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().sequence);
+            createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().sequence,
+                    String.valueOf(eventId), withdrawalId);
 
             List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
             Optional.ofNullable(webHookModels)
                     .stream()
                     .flatMap(Collection::stream)
-                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(sinkEvent.getSource()))
-                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawal.getId(),
-                            sinkEvent.getId(), sinkEvent.getCreatedAt()))
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawalId,
+                            eventId, sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalCreatedHandler error when handle change: {}, sinkEvent: {} e: ", change, sinkEvent, e);
@@ -90,14 +94,16 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         return webHookModels;
     }
 
-    private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference, int sequenceId) {
+    private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference,
+                                 int sequenceId, String eventId, String withdrawalId) {
         WithdrawalIdentityWalletReference reference = new WithdrawalIdentityWalletReference();
         reference.setIdentityId(destinationIdentityReference.getIdentityId());
         reference.setWalletId(withdrawal.getSource());
-        reference.setWithdrawalId(withdrawal.getId());
-        reference.setEventId(withdrawal.getId());
+        reference.setWithdrawalId(withdrawalId);
+        reference.setEventId(eventId);
         reference.setSequenceId((long) sequenceId);
         withdrawalReferenceDao.create(reference);
+        log.info("Handle withdrawal reference created reference: {} ", reference);
     }
 
     @Override

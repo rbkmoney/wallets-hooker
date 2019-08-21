@@ -99,7 +99,7 @@ public class TestBeanFactory {
         changesWithdrawal.add(withdrawalChange);
         eventSinkPayload.setChanges(changesWithdrawal);
         withdrawalSink.setPayload(eventSinkPayload);
-        withdrawalSink.setSource(SOURCE_WALLET_ID);
+        withdrawalSink.setSource(WITHDRAWAL_ID);
         withdrawalSink.setId(66L);
         return withdrawalSink;
     }
