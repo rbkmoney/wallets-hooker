@@ -34,12 +34,12 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
     }
 
     @Override
-    public WebhookMessage generate(Withdrawal event, WebHookModel model, String sourceId, Long eventId, Long parentId, String createdAt) {
+    public WebhookMessage generate(Withdrawal event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(event, model, sourceId, eventId, parentId, createdAt);
+            WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
             withdrawal.setDestination(event.getDestination());
-            withdrawal.setId(event.getId());
+            withdrawal.setId(withdrawalId);
             withdrawal.setWallet(event.getSource());
             withdrawal.setBody(initBody(event));
             String requestBody = objectMapper.writeValueAsString(withdrawal);
