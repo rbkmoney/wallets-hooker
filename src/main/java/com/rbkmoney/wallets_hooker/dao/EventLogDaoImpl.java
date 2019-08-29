@@ -42,7 +42,7 @@ public class EventLogDaoImpl extends AbstractDao implements EventLogDao {
                 .insertInto(EVENT_LOG)
                 .set(getDslContext()
                         .newRecord(EVENT_LOG, eventLog))
-                .onConflict(EVENT_LOG.EVENT_ID)
+                .onConflict(EVENT_LOG.EVENT_ID, EVENT_LOG.EVENT_SINK)
                 .doNothing();
         execute(insertReturningStep);
     }

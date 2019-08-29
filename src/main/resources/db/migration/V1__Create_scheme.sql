@@ -71,7 +71,7 @@ CREATE TABLE whook.withdrawal_identity_wallet_reference (
 
 CREATE TABLE whook.event_log (
   event_id bigint NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   event_sink character varying(40) NOT NULL,
-  CONSTRAINT withdrawal_event_log_pkey PRIMARY KEY (event_id)
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT withdrawal_event_log_pkey PRIMARY KEY (event_id, event_sink)
 );
