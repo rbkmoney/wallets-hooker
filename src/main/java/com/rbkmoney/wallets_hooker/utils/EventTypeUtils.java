@@ -28,7 +28,7 @@ public class EventTypeUtils {
             } else if (withdrawal.isSetStarted()) {
                 return EventType.WITHDRAWAL_CREATED;
             } else if (withdrawal.isSetSucceeded()) {
-                return EventType.WITHDRAWAL_CREATED;
+                return EventType.WITHDRAWAL_SUCCEEDED;
             }
         } else if (type.isSetDestination()) {
             DestinationEventType destination = type.getDestination();
