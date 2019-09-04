@@ -39,7 +39,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         try {
             WebhookMessage webhookMessage = generatorService.generate(event, model, sourceId, eventId, parentId, createdAt);
             webhookMessage.setParentEventId(initPatenId(model, parentId));
-            String message = initRequestBody(event);
+            String message = initRequestBody(event, sourceId);
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
             log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
@@ -57,15 +57,17 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         return parentIsNotExistId;
     }
 
-    private String initRequestBody(WithdrawalStatus event) throws JsonProcessingException {
+    private String initRequestBody(WithdrawalStatus event, String withdrawalId) throws JsonProcessingException {
         String message = "";
         if (event.isSetFailed()) {
-                WithdrawalFailed withdrawalFailed = new WithdrawalFailed();
-                message = objectMapper.writeValueAsString(withdrawalFailed);
-            } else if (event.isSetSucceeded()) {
-                WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
-                message = objectMapper.writeValueAsString(withdrawalSucceeded);
-            }
+            WithdrawalFailed withdrawalFailed = new WithdrawalFailed();
+            withdrawalFailed.setWithdrawalID(withdrawalId);
+            message = objectMapper.writeValueAsString(withdrawalFailed);
+        } else if (event.isSetSucceeded()) {
+            WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
+            withdrawalSucceeded.setWithdrawalID(withdrawalId);
+            message = objectMapper.writeValueAsString(withdrawalSucceeded);
+        }
         return message;
     }
 
