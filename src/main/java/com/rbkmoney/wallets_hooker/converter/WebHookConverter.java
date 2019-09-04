@@ -26,6 +26,7 @@ public class WebHookConverter implements Converter<Webhook, com.rbkmoney.fistful
         IdentityKey identityKey = identityKeyDao.getByIdentity(event.getIdentityId());
         webHook.setPubKey(identityKey.getPubKey());
         webHook.setEventFilter(new EventFilter());
+        webHook.setUrl(event.getUrl());
         return webHook;
     }
 }

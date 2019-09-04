@@ -45,9 +45,14 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
 
     @Override
     public Webhook create(WebhookParams webhookParams) {
-        com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook webhook = webHookDao.create(webHookParamsToWebHookConverter.convert(webhookParams));
-        log.info("Webhook webhookParams: {}", webhookParams);
-        return webHookConverter.convert(webhook);
+        try {
+            com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook webhook = webHookDao.create(webHookParamsToWebHookConverter.convert(webhookParams));
+            log.info("Webhook webhookParams: {}", webhookParams);
+            return webHookConverter.convert(webhook);
+        } catch (Exception e) {
+            log.error("Error when create webhook: {} ", webhookParams, e);
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

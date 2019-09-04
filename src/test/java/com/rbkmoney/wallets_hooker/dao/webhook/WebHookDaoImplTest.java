@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 
 @Slf4j
 @ContextConfiguration(classes = {WebHookDaoImpl.class, WebHookModelToWebHookConverter.class,
@@ -61,5 +62,29 @@ public class WebHookDaoImplTest extends AbstractPostgresIntegrationTest {
         webHookModel = webHookDao.getById(webhook1.getId());
 
         Assert.assertNull(webHookModel);
+
+        eventTypes = new LinkedHashSet<>();
+        eventTypes.add(EventType.DESTINATION_CREATED);
+        eventTypes.add(EventType.DESTINATION_AUTHORIZED);
+        webhook = WebHookModel.builder()
+                .enabled(true)
+                .identityId(IDENTITY_ID)
+                .url("/qwe")
+                .walletId(null)
+                .eventTypes(eventTypes)
+                .build();
+        Webhook webhook2 = webHookDao.create(webhook);
+
+        List<WebHookModel> modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
+
+        Assert.assertEquals(1, modelByIdentityAndWalletId.size());
+
+        webHookDao.create(webhook);
+        modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
+        Assert.assertEquals(2, modelByIdentityAndWalletId.size());
+
+        modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, WALLET_123, EventType.DESTINATION_CREATED);
+
+        Assert.assertEquals(0, modelByIdentityAndWalletId.size());
     }
 }
