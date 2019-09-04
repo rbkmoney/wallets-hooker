@@ -39,7 +39,7 @@
         <kafka.common.lib.version>0.0.9</kafka.common.lib.version>
         <kafka.clients.version>2.1.0</kafka.clients.version>
         <swag-wallets-webhook-events.version>1.3-66ed043</swag-wallets-webhook-events.version>
-        <webhook-dispatcher-proto.version>1.8-6d6cf27</webhook-dispatcher-proto.version>
+        <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
     </properties>
 
     <dependencies>
