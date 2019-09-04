@@ -45,7 +45,6 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setEventId(eventId);
-            webhookMessage.setParentEventId(0);
             log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
             return webhookMessage;
         } catch (Exception e) {

@@ -140,7 +140,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                         .from(WEBHOOK)
                         .join(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
                         .where(
-                                appendConditions(condition, Operator.OR,
+                                appendConditions(condition, Operator.AND,
                                         new ConditionParameterSource()
                                                 .addValue(WEBHOOK.IDENTITY_ID, identityId, EQUALS)
                                                 .addValue(WEBHOOK.WALLET_ID, walletId, EQUALS)
@@ -166,7 +166,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 .leftJoin(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
                 .leftJoin(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID))
                 .where(
-                        appendConditions(condition, Operator.OR,
+                        appendConditions(condition, Operator.AND,
                                 new ConditionParameterSource()
                                         .addValue(WEBHOOK.IDENTITY_ID, identityId, EQUALS)
                                         .addValue(WEBHOOK.WALLET_ID, walletId, EQUALS)
