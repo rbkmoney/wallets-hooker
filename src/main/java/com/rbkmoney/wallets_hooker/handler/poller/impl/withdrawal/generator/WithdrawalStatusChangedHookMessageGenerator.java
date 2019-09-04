@@ -66,8 +66,11 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded()
                     .withdrawalID(withdrawalId);
             return objectMapper.writeValueAsString(withdrawalSucceeded);
+        } else {
+            log.error("Unknown WithdrawalStatus status: {} withdrawalId: {}", event, withdrawalId);
+            String message = String.format("Unknown WithdrawalStatus status: %s withdrawalId: %s", event, withdrawalId);
+            throw new GenerateMessageException(message);
         }
-        return "";
     }
 
 }
