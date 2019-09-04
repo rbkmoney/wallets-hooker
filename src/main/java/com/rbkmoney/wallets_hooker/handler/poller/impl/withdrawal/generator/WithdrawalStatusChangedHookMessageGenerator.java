@@ -58,17 +58,16 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     }
 
     private String initRequestBody(WithdrawalStatus event, String withdrawalId) throws JsonProcessingException {
-        String message = "";
         if (event.isSetFailed()) {
-            WithdrawalFailed withdrawalFailed = new WithdrawalFailed();
-            withdrawalFailed.setWithdrawalID(withdrawalId);
-            message = objectMapper.writeValueAsString(withdrawalFailed);
+            WithdrawalFailed withdrawalFailed = new WithdrawalFailed()
+                    .withdrawalID(withdrawalId);
+            return objectMapper.writeValueAsString(withdrawalFailed);
         } else if (event.isSetSucceeded()) {
-            WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
-            withdrawalSucceeded.setWithdrawalID(withdrawalId);
-            message = objectMapper.writeValueAsString(withdrawalSucceeded);
+            WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded()
+                    .withdrawalID(withdrawalId);
+            return objectMapper.writeValueAsString(withdrawalSucceeded);
         }
-        return message;
+        return "";
     }
 
 }
