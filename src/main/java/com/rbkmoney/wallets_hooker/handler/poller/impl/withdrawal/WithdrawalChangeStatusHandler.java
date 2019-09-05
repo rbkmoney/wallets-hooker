@@ -33,7 +33,7 @@ public class WithdrawalChangeStatusHandler {
     public void handleChangeStatus(Change change, SinkEvent sinkEvent, String withdrawalId, EventType eventType) {
         try {
             WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
-            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), null, eventType);
+            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
             Long parentId = reference.getSequenceId();
             String walletId = reference.getWalletId();
             webHookModels.stream()
