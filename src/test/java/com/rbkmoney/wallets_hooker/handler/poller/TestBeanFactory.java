@@ -19,6 +19,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
@@ -52,6 +53,7 @@ public class TestBeanFactory {
         sinkEvent.setPayload(payload);
         sinkEvent.setSource(DESTINATION);
         sinkEvent.setId(1L);
+        sinkEvent.setCreatedAt(Instant.now().toString());
         return sinkEvent;
     }
 
@@ -74,6 +76,7 @@ public class TestBeanFactory {
         sinkEvent.setPayload(payload);
         sinkEvent.setSource(DESTINATION);
         sinkEvent.setId(2L);
+        sinkEvent.setCreatedAt(Instant.now().toString());
         return sinkEvent;
     }
 
@@ -101,6 +104,8 @@ public class TestBeanFactory {
         withdrawalSink.setPayload(eventSinkPayload);
         withdrawalSink.setSource(WITHDRAWAL_ID);
         withdrawalSink.setId(66L);
+        withdrawalSink.setCreatedAt(Instant.now().toString());
+
         return withdrawalSink;
     }
 
@@ -125,6 +130,8 @@ public class TestBeanFactory {
         payload.setSequence(1);
         sinkEvent.setPayload(payload);
         sinkEvent.setId(WALLET_ID);
+        sinkEvent.setCreatedAt(Instant.now().toString());
+
         return sinkEvent;
     }
 
@@ -140,9 +147,11 @@ public class TestBeanFactory {
         WithdrawalStatus succeeded = WithdrawalStatus.succeeded(withdrawalSucceeded);
         change.setStatusChanged(succeeded);
         changes.add(change);
+
         payload.setChanges(changes);
         sinkEvent.setPayload(payload);
         sinkEvent.setId(67L);
+        sinkEvent.setCreatedAt(Instant.now().toString());
         return sinkEvent;
     }
 
