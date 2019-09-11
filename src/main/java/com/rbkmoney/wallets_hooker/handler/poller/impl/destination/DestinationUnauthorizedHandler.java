@@ -28,7 +28,7 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
     private final WebHookMessageSenderService webHookMessageSenderService;
     private final WebHookDao webHookDao;
 
-    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.failed", new IsNullCondition().not()));
+    private Filter filter = new PathConditionFilter(new PathConditionRule("status.changed.unauthorized", new IsNullCondition().not()));
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
