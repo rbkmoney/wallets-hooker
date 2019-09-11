@@ -28,7 +28,7 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
     private final WebHookMessageSenderService webHookMessageSenderService;
     private final WebHookDao webHookDao;
 
-    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.succeeded", new IsNullCondition().not()));
+    private Filter filter = new PathConditionFilter(new PathConditionRule("status.changed.authorized", new IsNullCondition().not()));
 
     @Override
     public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
@@ -45,7 +45,6 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
 
         log.info("Finish handling destination authorized, destinationId={}, identityId={} saved to db.",
                 sinkEvent.getSource(), destinationIdentityReference.getIdentityId());
-
     }
 
     @Override

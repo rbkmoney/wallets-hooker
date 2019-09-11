@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
 import com.rbkmoney.eventstock.client.EventAction;
+import com.rbkmoney.fistful.destination.*;
 import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
@@ -19,6 +20,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -51,6 +53,21 @@ public class WaitingDestinationAndWalletHandlerTest extends AbstractPostgresInte
         Assert.assertEquals(action, EventAction.CONTINUE);
 
         action = destinationEventSinkHandler.handle(TestBeanFactory.createDestinationAccount(), "test");
+        Assert.assertEquals(action, EventAction.CONTINUE);
+
+        com.rbkmoney.fistful.destination.SinkEvent destination = TestBeanFactory.createDestination();
+        ArrayList<Change> changes = new ArrayList<>();
+        com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
+        change.setStatus(StatusChange.changed(Status.authorized(new Authorized())));
+        changes.add(change);
+        destination.getPayload().setChanges(changes);
+        action = destinationEventSinkHandler.handle(destination, "test");
+        Assert.assertEquals(action, EventAction.CONTINUE);
+
+        change.setStatus(StatusChange.changed(Status.unauthorized(new Unauthorized())));
+        changes.add(change);
+        destination.getPayload().setChanges(changes);
+        action = destinationEventSinkHandler.handle(destination, "test");
         Assert.assertEquals(action, EventAction.CONTINUE);
 
         action = walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), "test");
