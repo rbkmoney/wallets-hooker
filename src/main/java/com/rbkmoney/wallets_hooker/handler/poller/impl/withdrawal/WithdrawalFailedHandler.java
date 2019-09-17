@@ -22,9 +22,13 @@ public class WithdrawalFailedHandler extends AbstractWithdrawalEventHandler {
 
     @Override
     public void handle(Change change, SinkEvent event) {
-        log.info("Handle withdrawal failed: {} ", change.getStatusChanged());
         String withdrawalId = event.getSource();
+
+        log.info("Start handling withdrawal event status failed change, withdrawalId={}", withdrawalId);
+
         withdrawalChangeStatusHandler.handleChangeStatus(change, event, withdrawalId, EventType.WITHDRAWAL_FAILED);
+
+        log.info("Finish handling withdrawal event status failed change, withdrawalId={}", withdrawalId);
     }
 
     @Override

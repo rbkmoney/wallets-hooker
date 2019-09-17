@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Map;
+
 @Slf4j
 @Component
 public class DestinationStatusChangeHookMessageGenerator implements HookMessageGenerator<StatusChange> {
@@ -40,15 +42,21 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     }
 
     @Override
-    public WebhookMessage generate(StatusChange statusChange, WebHookModel model, String sourceId, Long eventId, Long parentId, String createdAt) {
+    public WebhookMessage generate(StatusChange statusChange, WebHookModel model, String destinationId, Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, sourceId, eventId, parentId, createdAt);
+            log.info("Start generating webhook message from destination event status changed, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
+
+            String message = generateMessage(statusChange, destinationId);
+
+            Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
+
+            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, destinationId, eventId, parentId, createdAt);
             webhookMessage.setParentEventId(initParentId(model, parentId));
-            String message = generateMessage(statusChange, sourceId);
-            additionalHeadersGenerator.generate(model, message);
-            webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
+            webhookMessage.setAdditionalHeaders(additionalHeaders);
             webhookMessage.setRequestBody(message.getBytes());
-            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+
+            log.info("Finish generating webhook message from destination event status changed, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
+
             return webhookMessage;
         } catch (Exception e) {
             log.error("Error when generate webhookMessage e: ", e);
@@ -57,9 +65,10 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     }
 
     private Long initParentId(WebHookModel model, Long parentId) {
-        if (model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
+        if (model.getEventTypes() != null && model.getEventTypes().contains(EventType.DESTINATION_CREATED)) {
             return parentId;
         }
+
         return parentIsNotExistId;
     }
 

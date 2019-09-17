@@ -25,10 +25,15 @@ public class WalletAccountCreatedHandler extends AbstractWalletEventHandler {
     public void handle(Change change, SinkEvent event) {
         String walletId = event.getSource();
         String identityId = change.getAccount().getCreated().getIdentity();
+
+        log.info("Start handling wallet account created,  identityId={}, walletId={}", identityId, walletId);
+
         WalletIdentityReference reference = new WalletIdentityReference();
         reference.setWalletId(walletId);
         reference.setIdentityId(identityId);
+
         walletReferenceDao.create(reference);
+
         log.info("Finish handling wallet account created, walletId={}, identityId={} saved to db.", walletId, identityId);
     }
 

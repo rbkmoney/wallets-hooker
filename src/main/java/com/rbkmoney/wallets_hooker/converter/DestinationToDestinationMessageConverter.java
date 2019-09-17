@@ -26,7 +26,7 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
     }
 
     private DestinationResource initDestinationResource(Resource resource) {
-        DestinationResource destinationResource = null;
+        DestinationResource destinationResource;
         if (resource.isSetBankCard()) {
             BankCard bankCard = new BankCard();
             bankCard.bin(resource.getBankCard().bin);

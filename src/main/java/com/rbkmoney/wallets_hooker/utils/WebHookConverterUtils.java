@@ -1,9 +1,9 @@
 package com.rbkmoney.wallets_hooker.utils;
 
 import com.rbkmoney.fistful.webhooker.*;
-import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.exception.UnknownEventTypeException;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,9 +11,13 @@ public class WebHookConverterUtils {
 
     public static EventFilter generateEventFilter(Set<com.rbkmoney.wallets_hooker.domain.enums.EventType> eventTypes) {
         EventFilter eventFilter = new EventFilter();
-        eventFilter.setTypes(eventTypes.stream()
-                .map(WebHookConverterUtils::resolveEventType)
-                .collect(Collectors.toSet()));
+        if (eventTypes != null) {
+            eventFilter.setTypes(eventTypes.stream()
+                    .map(WebHookConverterUtils::resolveEventType)
+                    .collect(Collectors.toSet()));
+        } else {
+            eventFilter.setTypes(Collections.emptySet());
+        }
         return eventFilter;
     }
 

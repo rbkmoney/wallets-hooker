@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,9 +35,14 @@ public class WithdrawalChangeStatusHandler {
     public void handleChangeStatus(Change change, SinkEvent sinkEvent, String withdrawalId, EventType eventType) {
         try {
             WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
-            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
+
             Long parentId = reference.getSequenceId();
             String walletId = reference.getWalletId();
+
+            List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
+
+            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+
             webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
                     .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
@@ -59,7 +66,9 @@ public class WithdrawalChangeStatusHandler {
                 Thread.currentThread().interrupt();
             }
         }
-        log.info("Handle withdrawal change status: {} ", withdrawalId);
+
+        log.info("withdrawalReferenceDao has been got, withdrawalReferenceDao={}", withdrawalReferenceDao);
+
         return reference;
     }
 

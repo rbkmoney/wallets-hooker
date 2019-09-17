@@ -24,9 +24,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
+
+import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
 
 @Slf4j
 @Component
@@ -49,11 +49,15 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     public void handle(Change change, SinkEvent sinkEvent) {
         try {
             long eventId = sinkEvent.getId();
-            String withdrawalId = sinkEvent.getSource();
             Withdrawal withdrawal = change.getCreated();
+            String withdrawalId = sinkEvent.getSource();
             String destinationId = withdrawal.getDestination();
-            DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
             String walletId = withdrawal.getSource();
+
+            log.info("Start handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
+
+            DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
+
             WalletIdentityReference walletIdentityReference = walletReferenceDao.get(walletId);
 
             while (destinationIdentityReference == null || walletIdentityReference == null) {
@@ -68,17 +72,22 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                 }
             }
 
-            createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().sequence,
-                    String.valueOf(eventId), withdrawalId);
+            log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference);
+            log.info("walletIdentityReference has been got, walletIdentityReference={}", walletIdentityReference);
+
+            createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().getSequence(), String.valueOf(eventId), withdrawalId);
 
             List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
-            Optional.ofNullable(webHookModels)
-                    .stream()
-                    .flatMap(Collection::stream)
+
+            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+
+            webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
                     .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawalId,
                             eventId, sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
+
+            log.info("Finish handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
         } catch (Exception e) {
             log.error("WithdrawalCreatedHandler error when handle change: {}, sinkEvent: {} e: ", change, sinkEvent, e);
             throw new HandleEventException("WithdrawalCreatedHandler error when handle change!", e);
@@ -102,7 +111,9 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         reference.setWithdrawalId(withdrawalId);
         reference.setEventId(eventId);
         reference.setSequenceId((long) sequenceId);
+
         withdrawalReferenceDao.create(reference);
+
         log.info("Handle withdrawal reference created reference: {} ", reference);
     }
 
