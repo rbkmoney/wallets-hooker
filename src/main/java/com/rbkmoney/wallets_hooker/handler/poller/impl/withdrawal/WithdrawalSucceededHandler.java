@@ -17,13 +17,18 @@ import org.springframework.stereotype.Component;
 public class WithdrawalSucceededHandler extends AbstractWithdrawalEventHandler {
 
     private final WithdrawalChangeStatusHandler withdrawalChangeStatusHandler;
+
     private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.succeeded", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent event) {
-        log.info("Handle withdrawal succeeded: {} ", change.getStatusChanged());
         String withdrawalId = event.getSource();
+
+        log.info("Start handling withdrawal event status succeeded change, withdrawalId={}", withdrawalId);
+
         withdrawalChangeStatusHandler.handleChangeStatus(change, event, withdrawalId, EventType.WITHDRAWAL_SUCCEEDED);
+
+        log.info("Finish handling withdrawal event status succeeded change, withdrawalId={}", withdrawalId);
     }
 
     @Override

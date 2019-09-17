@@ -36,17 +36,23 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
     @Override
     public WebhookMessage generate(Withdrawal event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
-            com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
+            log.info("Start generating webhook message from withdrawal event created, withdrawalId={}, model={}", withdrawalId, model.toString());
+
+            var withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
             withdrawal.setDestination(event.getDestination());
             withdrawal.setId(withdrawalId);
             withdrawal.setWallet(event.getSource());
             withdrawal.setBody(initBody(event));
+
             String requestBody = objectMapper.writeValueAsString(withdrawal);
+
+            WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setParentEventId(parentId);
-            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+
+            log.info("Finish generating webhook message from withdrawal event created, withdrawalId={}, model={}", withdrawalId, model.toString());
+
             return webhookMessage;
         } catch (JsonProcessingException e) {
             log.error("Error when generate webhookMessage event: {} model: {} eventId: {} e: ", event, model, eventId, e);

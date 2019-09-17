@@ -1,5 +1,7 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
+import com.rbkmoney.fistful.destination.Change;
+import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
@@ -18,6 +20,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -31,20 +35,27 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
     private Filter filter = new PathConditionFilter(new PathConditionRule("status.changed.unauthorized", new IsNullCondition().not()));
 
     @Override
-    public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
+    public void handle(Change change, SinkEvent sinkEvent) {
+        String destinationId = sinkEvent.getSource();
+
+        log.info("Start handling destination event status unauthorized change, destinationId={}", destinationId);
+
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(sinkEvent.getSource());
 
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(),
-                null, EventType.DESTINATION_UNAUTHORIZED);
+        log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference.toString());
+
+        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
+
+        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
 
         StatusChange status = change.getStatus();
+
         webHookModels.stream()
                 .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
                         sinkEvent.getId(), destinationIdentityReference.getSequenceId(), sinkEvent.getCreatedAt()))
                 .forEach(webHookMessageSenderService::send);
 
-        log.info("Finish handling destination authorized, destinationId={}, identityId={} saved to db.",
-                sinkEvent.getSource(), destinationIdentityReference.getIdentityId());
+        log.info("Finish handling destination event status unauthorized change, destinationId={}", destinationId);
     }
 
     @Override

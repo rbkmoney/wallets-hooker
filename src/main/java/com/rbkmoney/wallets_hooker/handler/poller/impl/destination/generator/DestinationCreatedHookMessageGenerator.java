@@ -33,23 +33,28 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
     }
 
     @Override
-    public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String sourceId,
+    public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String destinationId,
                                    Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, sourceId, eventId, parentId, createdAt);
-            DestinationCreated destinationCreated = new DestinationCreated();
+            log.info("Start generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
+
             Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
+
+            DestinationCreated destinationCreated = new DestinationCreated();
             destinationCreated.setDestination(value);
             String requestBody = objectMapper.writeValueAsString(destinationCreated);
+
+            WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, destinationId, eventId, parentId, createdAt);
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setEventId(eventId);
-            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+
+            log.info("Finish generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
+
             return webhookMessage;
         } catch (Exception e) {
-            log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model, e);
-            throw new GenerateMessageException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
+            throw new GenerateMessageException(String.format("DestinationCreatedHookMessageGenerator error when generate, destinationMessage=%s model=%s", destinationMessage, model.toString()), e);
         }
     }
 

@@ -9,13 +9,14 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import lombok.extern.slf4j.Slf4j;
 import org.flywaydb.core.Flyway;
-import org.junit.Assert;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import static org.junit.Assert.*;
 
 @Slf4j
 @ContextConfiguration(classes = {WebHookDaoImpl.class, WebHookModelToWebHookConverter.class,
@@ -52,16 +53,17 @@ public class WebHookDaoImplTest extends AbstractPostgresIntegrationTest {
 
         WebHookModel webHookModel = webHookDao.getById(webhook1.getId());
 
-        Assert.assertEquals(IDENTITY_ID, webHookModel.getIdentityId());
-        Assert.assertEquals(WALLET_123, webHookModel.getWalletId());
-        Assert.assertEquals(eventTypes, webHookModel.getEventTypes());
-        Assert.assertFalse(webHookModel.getPubKey().isEmpty());
+        assertEquals(IDENTITY_ID, webHookModel.getIdentityId());
+        assertEquals(WALLET_123, webHookModel.getWalletId());
+        assertEquals(eventTypes, webHookModel.getEventTypes());
+        assertFalse(webHookModel.getPubKey().isEmpty());
+        assertNotNull(webHookModel.getEventTypes());
 
         webHookDao.delete(webhook1.getId());
 
         webHookModel = webHookDao.getById(webhook1.getId());
 
-        Assert.assertNull(webHookModel);
+        assertNull(webHookModel);
 
         eventTypes = new LinkedHashSet<>();
         eventTypes.add(EventType.DESTINATION_CREATED);
@@ -77,14 +79,16 @@ public class WebHookDaoImplTest extends AbstractPostgresIntegrationTest {
 
         List<WebHookModel> modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
 
-        Assert.assertEquals(1, modelByIdentityAndWalletId.size());
+        assertEquals(1, modelByIdentityAndWalletId.size());
+        assertNotNull(modelByIdentityAndWalletId.get(0).getEventTypes());
 
         webHookDao.create(webhook);
         modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
-        Assert.assertEquals(2, modelByIdentityAndWalletId.size());
+        assertEquals(2, modelByIdentityAndWalletId.size());
+        assertNotNull(modelByIdentityAndWalletId.get(0).getEventTypes());
 
         modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, WALLET_123, EventType.DESTINATION_CREATED);
 
-        Assert.assertEquals(0, modelByIdentityAndWalletId.size());
+        assertEquals(0, modelByIdentityAndWalletId.size());
     }
 }

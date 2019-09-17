@@ -35,14 +35,19 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     }
 
     @Override
-    public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, String sourceId, Long eventId, Long parentId, String createdAt) {
+    public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            WebhookMessage webhookMessage = generatorService.generate(event, model, sourceId, eventId, parentId, createdAt);
+            log.info("Start generating webhook message from withdrawal event status changed, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
+
+            String message = initRequestBody(event, withdrawalId);
+
+            WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             webhookMessage.setParentEventId(initPatenId(model, parentId));
-            String message = initRequestBody(event, sourceId);
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
-            log.info("Webhook message generated webhookMessage: {} for model: {}", webhookMessage, model);
+
+            log.info("Finish generating webhook message from withdrawal event status changed, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
+
             return webhookMessage;
         } catch (Exception e) {
             log.error("Error when generate webhookMessage e: ", e);
@@ -54,6 +59,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         if (model.getEventTypes() != null && model.getEventTypes().contains(EventType.WITHDRAWAL_CREATED)) {
             return parentId;
         }
+
         return parentIsNotExistId;
     }
 

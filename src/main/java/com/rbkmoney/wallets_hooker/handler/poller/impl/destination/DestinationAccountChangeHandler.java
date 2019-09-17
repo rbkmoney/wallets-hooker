@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
 import com.rbkmoney.fistful.destination.AccountChange;
+import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
@@ -21,6 +22,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -35,32 +38,40 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
     private Filter filter = new PathConditionFilter(new PathConditionRule("account", new IsNullCondition().not()));
 
     @Override
-    public void handle(com.rbkmoney.fistful.destination.Change change, com.rbkmoney.fistful.destination.SinkEvent sinkEvent) {
+    public void handle(Change change, SinkEvent sinkEvent) {
+        String destinationId = sinkEvent.getSource();
         AccountChange account = change.getAccount();
-        String identity = createDestinationReference(sinkEvent, account);
+        String identityId = account.getCreated().getIdentity();
 
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identity,
-                null, EventType.DESTINATION_CREATED);
+        log.info("Start handling destination event account change, destinationId={}, identityId={}", destinationId, identityId);
 
-        String source = sinkEvent.getSource();
-        DestinationMessage destinationMessage = destinationMessageDao.get(source);
+        createDestinationReference(sinkEvent, identityId);
+
+        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identityId, null, EventType.DESTINATION_CREATED);
+
+        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+
+        DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
+
+        log.info("destinationMessage has been got, destinationId={}", destinationId);
 
         webHookModels.stream()
-                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, source,
-                        sinkEvent.getId(), sinkEvent.getCreatedAt()))
+                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, destinationId, sinkEvent.getId(), sinkEvent.getCreatedAt()))
                 .forEach(webHookMessageSenderService::send);
-        log.info("Handle destination event account change with account: {} ", account);
+
+        log.info("Finish handling destination event account change, destinationId={}, identityId={}", destinationId, identityId);
     }
 
-    private String createDestinationReference(SinkEvent sinkEvent, AccountChange account) {
+    private void createDestinationReference(SinkEvent sinkEvent, String identityId) {
         DestinationIdentityReference reference = new DestinationIdentityReference();
         reference.setDestinationId(sinkEvent.getSource());
-        String identity = account.getCreated().getIdentity();
-        reference.setIdentityId(identity);
-        reference.setEventId(sinkEvent.getSource());
+        reference.setIdentityId(identityId);
+        reference.setEventId(String.valueOf(sinkEvent.getId()));
         reference.setSequenceId((long) sinkEvent.getPayload().getSequence());
+
         destinationReferenceDao.create(reference);
-        return identity;
+
+        log.info("Handle destination reference created reference: {} ", reference);
     }
 
     @Override
