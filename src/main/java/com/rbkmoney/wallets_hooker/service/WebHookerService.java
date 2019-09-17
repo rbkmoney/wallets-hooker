@@ -27,27 +27,46 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
     private final WebHookModelToWebHookConverter webHookModelToWebHookConverter;
 
     @Override
-    public List<Webhook> getList(String id) {
-        return webHookDao.getByIdentity(id).stream()
+    public List<Webhook> getList(String identityId) {
+        log.info("Start get webhooks: identityId={}", identityId);
+
+        List<Webhook> webhooks = webHookDao.getByIdentity(identityId).stream()
                 .map(webHookConverter::convert)
                 .collect(Collectors.toList());
+
+
+        log.info("Finish get webhooks: size={}", webhooks.size());
+
+        return webhooks;
     }
 
     @Override
     public Webhook get(long id) throws WebhookNotFound {
+        log.info("Start get webhook: id={}", id);
+
         WebHookModel webHookModel = webHookDao.getById(id);
+
+        log.info("Finish get webhook: webHookModel={}", webHookModel);
+
         if (webHookModel == null) {
             log.warn("Webhook not found: {}", id);
             throw new WebhookNotFound();
         }
+
         return webHookModelToWebHookConverter.convert(webHookModel);
     }
 
     @Override
     public Webhook create(WebhookParams webhookParams) {
         try {
-            com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook webhook = webHookDao.create(webHookParamsToWebHookConverter.convert(webhookParams));
-            log.info("Webhook webhookParams: {}", webhookParams);
+            log.info("Start create webhook: webhookParams={}", webhookParams);
+
+            WebHookModel webHookModel = webHookParamsToWebHookConverter.convert(webhookParams);
+
+            var webhook = webHookDao.create(webHookModel);
+
+            log.info("Finish create webhook: webhook={}", webhook);
+
             return webHookConverter.convert(webhook);
         } catch (Exception e) {
             log.error("Error when create webhook: {} ", webhookParams, e);
@@ -58,9 +77,12 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
     @Override
     public void delete(long id) throws WebhookNotFound {
         try {
+            log.info("Start delete webhook: id={}", id);
+
             webHookDao.delete(id);
-            log.info("Webhook deleted: {}", id);
-        } catch (Exception e){
+
+            log.info("Finish delete webhook: id={}", id);
+        } catch (Exception e) {
             log.error("Fail to delete webhook: {}", id, e);
             throw new WebhookNotFound();
         }
