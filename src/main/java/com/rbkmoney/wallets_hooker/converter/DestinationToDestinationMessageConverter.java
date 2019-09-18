@@ -18,7 +18,8 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
     public com.rbkmoney.swag.wallets.webhook.events.model.Destination convert(Destination event) {
         var destination = new com.rbkmoney.swag.wallets.webhook.events.model.Destination();
         destination.setExternalID(event.getExternalId());
-        destination.setMetadata(event.getFieldMetaData());
+        // todo metadata null?
+        destination.setMetadata(null);
         destination.setName(event.getName());
         DestinationResource destinationResource = initDestinationResource(event.getResource());
         destination.setResource(destinationResource);
