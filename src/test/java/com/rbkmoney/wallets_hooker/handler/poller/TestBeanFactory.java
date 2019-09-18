@@ -20,6 +20,7 @@ import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
@@ -38,18 +39,21 @@ public class TestBeanFactory {
         ArrayList<Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
         Destination destination = new Destination();
+        destination.setName("name");
         destination.setId(DESTINATION);
         Resource resource = new Resource();
         BankCard bankCard = new BankCard();
         bankCard.setBin("1234");
         bankCard.setMaskedPan("421");
         bankCard.setPaymentSystem(BankCardPaymentSystem.mastercard);
+        bankCard.setToken("token");
         resource.setBankCard(bankCard);
         destination.setResource(resource);
         change.setCreated(destination);
         changes.add(change);
         payload.setChanges(changes);
         payload.setSequence(1);
+        payload.setOccuredAt(LocalDateTime.now().toString());
         sinkEvent.setPayload(payload);
         sinkEvent.setSource(DESTINATION);
         sinkEvent.setId(1L);
