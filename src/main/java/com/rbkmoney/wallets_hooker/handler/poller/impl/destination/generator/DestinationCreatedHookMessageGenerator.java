@@ -3,6 +3,7 @@ package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
+import com.rbkmoney.swag.wallets.webhook.events.model.Event;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
@@ -14,6 +15,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
@@ -43,6 +48,12 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
 
             DestinationCreated destinationCreated = new DestinationCreated();
             destinationCreated.setDestination(value);
+            destinationCreated.setEventID(eventId.toString());
+            destinationCreated.setEventType(Event.EventTypeEnum.DESTINATIONCREATED);
+            OffsetDateTime parse = OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME);
+            destinationCreated.setOccuredAt(parse);
+            destinationCreated.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
+
             String requestBody = objectMapper.writeValueAsString(destinationCreated);
 
             WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, destinationId, eventId, parentId, createdAt);

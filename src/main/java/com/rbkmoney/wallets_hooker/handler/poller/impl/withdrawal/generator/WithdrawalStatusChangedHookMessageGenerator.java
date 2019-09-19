@@ -3,6 +3,7 @@ package com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.fistful.withdrawal.WithdrawalStatus;
+import com.rbkmoney.swag.wallets.webhook.events.model.Event;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalFailed;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalSucceeded;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
@@ -16,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
@@ -39,7 +43,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         try {
             log.info("Start generating webhook message from withdrawal event status changed, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
 
-            String message = initRequestBody(event, withdrawalId);
+            String message = initRequestBody(event, withdrawalId, eventId, createdAt);
 
             WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             webhookMessage.setParentEventId(initPatenId(model, parentId));
@@ -63,14 +67,22 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         return parentIsNotExistId;
     }
 
-    private String initRequestBody(WithdrawalStatus event, String withdrawalId) throws JsonProcessingException {
+    private String initRequestBody(WithdrawalStatus event, String withdrawalId, Long eventId, String createdAt) throws JsonProcessingException {
         if (event.isSetFailed()) {
             WithdrawalFailed withdrawalFailed = new WithdrawalFailed()
                     .withdrawalID(withdrawalId);
+            withdrawalFailed.setEventType(Event.EventTypeEnum.WITHDRAWALFAILED);
+            withdrawalFailed.setEventID(eventId.toString());
+            withdrawalFailed.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
+            withdrawalFailed.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
             return objectMapper.writeValueAsString(withdrawalFailed);
         } else if (event.isSetSucceeded()) {
             WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded()
                     .withdrawalID(withdrawalId);
+            withdrawalSucceeded.setEventType(Event.EventTypeEnum.WITHDRAWALSUCCEEDED);
+            withdrawalSucceeded.setEventID(eventId.toString());
+            withdrawalSucceeded.setOccuredAt(OffsetDateTime.parse(createdAt));
+            withdrawalSucceeded.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
             return objectMapper.writeValueAsString(withdrawalSucceeded);
         } else {
             log.error("Unknown WithdrawalStatus status: {} withdrawalId: {}", event, withdrawalId);

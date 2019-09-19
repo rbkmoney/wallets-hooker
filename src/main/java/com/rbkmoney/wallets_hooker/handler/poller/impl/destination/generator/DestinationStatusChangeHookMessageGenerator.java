@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
+import com.rbkmoney.swag.wallets.webhook.events.model.Event;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
@@ -16,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Slf4j
@@ -46,7 +49,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
         try {
             log.info("Start generating webhook message from destination event status changed, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
 
-            String message = generateMessage(statusChange, destinationId);
+            String message = generateMessage(statusChange, destinationId, eventId, createdAt);
 
             Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
 
@@ -72,14 +75,24 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
         return parentIsNotExistId;
     }
 
-    private String generateMessage(StatusChange statusChange, String destinationId) throws JsonProcessingException {
+    private String generateMessage(StatusChange statusChange, String destinationId,
+                                   Long eventId, String createdAt) throws JsonProcessingException {
+
         if (statusChange.getChanged().isSetAuthorized()) {
             DestinationAuthorized destination = new DestinationAuthorized();
             destination.setDestinationID(destinationId);
+            destination.setEventID(eventId.toString());
+            destination.setEventType(Event.EventTypeEnum.DESTINATIONAUTHORIZED);
+            destination.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
+            destination.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
             return objectMapper.writeValueAsString(destination);
         } else if (statusChange.getChanged().isSetUnauthorized()) {
             DestinationUnauthorized destination = new DestinationUnauthorized();
             destination.setDestinationID(destinationId);
+            destination.setEventID(eventId.toString());
+            destination.setEventType(Event.EventTypeEnum.DESTINATIONUNAUTHORIZED);
+            destination.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
+            destination.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
             return objectMapper.writeValueAsString(destination);
         } else {
             log.error("Unknown statusChange: {}", statusChange);
