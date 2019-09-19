@@ -9,6 +9,7 @@ import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.fistful.destination.Unauthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
+import com.rbkmoney.wallets_hooker.configuration.MappingConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
@@ -36,9 +37,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
     public static final long PARENT_ID = 0L;
     public static final String T_08_43_42_Z = "2019-07-02T08:43:42Z";
 
-    ObjectMapper objectMapper = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+    ObjectMapper objectMapper = new MappingConfig().objectMapper();
 
     Signer signer = new AsymSigner();
 
@@ -46,7 +45,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
     DestinationStatusChangeHookMessageGenerator destinationCreatedHookMessageGenerator =
             new DestinationStatusChangeHookMessageGenerator(
                     generatorService,
-                    new ObjectMapper(),
+                    objectMapper,
                     new AdditionalHeadersGenerator(signer),
                     -1L);
 

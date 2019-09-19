@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.fistful.base.Cash;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
+import com.rbkmoney.swag.wallets.webhook.events.model.Event;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalBody;
+import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalStarted;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
@@ -15,6 +17,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
@@ -43,8 +48,14 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
             withdrawal.setId(withdrawalId);
             withdrawal.setWallet(event.getSource());
             withdrawal.setBody(initBody(event));
+            WithdrawalStarted withdrawalStarted = new WithdrawalStarted();
+            withdrawalStarted.setWithdrawal(withdrawal);
+            withdrawalStarted.setEventType(Event.EventTypeEnum.WITHDRAWALSTARTED);
+            withdrawalStarted.setEventID(eventId.toString());
+            withdrawalStarted.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
+            withdrawalStarted.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
 
-            String requestBody = objectMapper.writeValueAsString(withdrawal);
+            String requestBody = objectMapper.writeValueAsString(withdrawalStarted);
 
             WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             webhookMessage.setRequestBody(requestBody.getBytes());

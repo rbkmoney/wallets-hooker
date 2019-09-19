@@ -1,12 +1,10 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
+import com.rbkmoney.wallets_hooker.configuration.MappingConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
@@ -21,6 +19,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 public class DestinationCreatedHookMessageGeneratorTest {
@@ -33,9 +33,7 @@ public class DestinationCreatedHookMessageGeneratorTest {
     public static final String SOURCE_ID = "sourceId";
     public static final String DESTINATION_ID = "destination_id";
 
-    ObjectMapper objectMapper = new ObjectMapper()
-            .setSerializationInclusion(JsonInclude.Include.NON_NULL)
-            .configure(SerializationFeature.WRITE_ENUMS_USING_TO_STRING, true);
+    ObjectMapper objectMapper = new MappingConfig().objectMapper();
 
     Signer signer = new AsymSigner();
 
@@ -43,7 +41,7 @@ public class DestinationCreatedHookMessageGeneratorTest {
     DestinationCreatedHookMessageGenerator destinationCreatedHookMessageGenerator =
             new DestinationCreatedHookMessageGenerator(
                     generatorService,
-                    new ObjectMapper(),
+                    objectMapper,
                     new AdditionalHeadersGenerator(signer));
 
     @Test
@@ -71,8 +69,12 @@ public class DestinationCreatedHookMessageGeneratorTest {
         event.setMessage(objectMapper.writeValueAsString(destination));
         event.setDestinationId(DESTINATION_ID);
 
+        String createdAt = "2019-07-02T08:43:42Z";
+
         WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(event,
-                model, SOURCE_ID, EVENT_ID, 0L, "2019-07-02T08:43:42Z");
+                model, SOURCE_ID, EVENT_ID, 0L, createdAt);
+
+        System.out.println(generate);
 
         Assert.assertEquals(EVENT_ID, generate.getEventId());
         Assert.assertEquals(URL, generate.getUrl());
