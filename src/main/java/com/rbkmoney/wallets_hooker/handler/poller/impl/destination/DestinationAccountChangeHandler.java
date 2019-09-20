@@ -47,31 +47,40 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
 
         createDestinationReference(sinkEvent, identityId);
 
+        log.info("Trying to get webHookModels, destinationId={}, identityId={}", destinationId, identityId);
+
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identityId, null, EventType.DESTINATION_CREATED);
 
-        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+        if (!webHookModels.isEmpty()) {
+            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+            log.info("Trying to get destinationMessage, destinationId={}", destinationId);
 
-        DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
+            DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
 
-        log.info("destinationMessage has been got, destinationId={}", destinationId);
+            log.info("destinationMessage has been got, destinationId={}", destinationId);
 
-        webHookModels.stream()
-                .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, destinationId, sinkEvent.getId(), sinkEvent.getCreatedAt()))
-                .forEach(webHookMessageSenderService::send);
+            webHookModels.stream()
+                    .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, destinationId, sinkEvent.getId(), sinkEvent.getCreatedAt()))
+                    .forEach(webHookMessageSenderService::send);
+        } else {
+            log.info("webHookModels is empty, destinationId={}", destinationId);
+        }
 
         log.info("Finish handling destination event account change, destinationId={}, identityId={}", destinationId, identityId);
     }
 
     private void createDestinationReference(SinkEvent sinkEvent, String identityId) {
-        DestinationIdentityReference reference = new DestinationIdentityReference();
-        reference.setDestinationId(sinkEvent.getSource());
-        reference.setIdentityId(identityId);
-        reference.setEventId(String.valueOf(sinkEvent.getId()));
-        reference.setSequenceId((long) sinkEvent.getPayload().getSequence());
+        log.info("Trying to create destinationIdentityReference, identityId={}", identityId);
 
-        destinationReferenceDao.create(reference);
+        DestinationIdentityReference destinationIdentityReference = new DestinationIdentityReference();
+        destinationIdentityReference.setDestinationId(sinkEvent.getSource());
+        destinationIdentityReference.setIdentityId(identityId);
+        destinationIdentityReference.setEventId(String.valueOf(sinkEvent.getId()));
+        destinationIdentityReference.setSequenceId((long) sinkEvent.getPayload().getSequence());
 
-        log.info("Handle destination reference created reference: {} ", reference);
+        destinationReferenceDao.create(destinationIdentityReference);
+
+        log.info("destinationIdentityReference has been created: {} ", destinationIdentityReference.toString());
     }
 
     @Override

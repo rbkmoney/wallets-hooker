@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -65,7 +64,8 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
 
             return webhookMessage;
         } catch (Exception e) {
-            throw new GenerateMessageException(String.format("DestinationCreatedHookMessageGenerator error when generate, destinationMessage=%s model=%s", destinationMessage, model.toString()), e);
+            log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model.toString(), e);
+            throw new GenerateMessageException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
         }
     }
 

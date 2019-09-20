@@ -39,21 +39,27 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
         String destinationId = sinkEvent.getSource();
 
         log.info("Start handling destination event status authorized change, destinationId={}", destinationId);
+        log.info("Trying to get destinationIdentityReference, destinationId={}", destinationId);
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
 
         log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference.toString());
+        log.info("Trying to get webHookModels, destinationId={}", destinationId);
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_AUTHORIZED);
 
-        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+        if (!webHookModels.isEmpty()) {
+            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
 
-        StatusChange status = change.getStatus();
+            StatusChange status = change.getStatus();
 
-        webHookModels.stream()
-                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
-                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
-                .forEach(webHookMessageSenderService::send);
+            webHookModels.stream()
+                    .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
+                            sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
+                    .forEach(webHookMessageSenderService::send);
+        } else {
+            log.info("webHookModels is empty, destinationId={}", destinationId);
+        }
 
         log.info("Finish handling destination event status authorized change, destinationId={}", destinationId);
     }

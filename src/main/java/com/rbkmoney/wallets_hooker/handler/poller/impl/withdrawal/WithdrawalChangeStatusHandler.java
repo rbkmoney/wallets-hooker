@@ -39,15 +39,21 @@ public class WithdrawalChangeStatusHandler {
             Long parentId = Long.valueOf(reference.getEventId());
             String walletId = reference.getWalletId();
 
+            log.info("Trying to get webHookModels, withdrawalId={}, parentId={}, walletId={}, eventType={}", withdrawalId, parentId, walletId, eventType);
+
             List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
 
-            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
+            if (!webHookModels.isEmpty()) {
+                log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
 
-            webHookModels.stream()
-                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
-                    .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                            withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
-                    .forEach(webHookMessageSenderService::send);
+                webHookModels.stream()
+                        .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                        .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
+                                withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
+                        .forEach(webHookMessageSenderService::send);
+            } else {
+                log.info("webHookModels is empty, withdrawalId={}, parentId={}, walletId={}, eventType={}", withdrawalId, parentId, walletId, eventType);
+            }
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
             throw new HandleEventException("WithdrawalChangeStatusHandler error when handle change!", e);
@@ -55,21 +61,23 @@ public class WithdrawalChangeStatusHandler {
     }
 
     private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {
-        WithdrawalIdentityWalletReference reference = withdrawalReferenceDao.get(withdrawalId);
-        while (reference == null) {
+        log.info("Trying to get withdrawalIdentityWalletReference, withdrawalId={}", withdrawalId);
+
+        WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = withdrawalReferenceDao.get(withdrawalId);
+        while (withdrawalIdentityWalletReference == null) {
             log.info("Waiting withdrawal create: {} !", withdrawalId);
             try {
                 Thread.sleep(waitingPollPeriod);
-                reference = withdrawalReferenceDao.get(withdrawalId);
+                withdrawalIdentityWalletReference = withdrawalReferenceDao.get(withdrawalId);
             } catch (InterruptedException e) {
                 log.error("Error when waiting withdrawal create: {} e: ", withdrawalId, e);
                 Thread.currentThread().interrupt();
             }
         }
 
-        log.info("withdrawalReferenceDao has been got, withdrawalReferenceDao={}", withdrawalReferenceDao);
+        log.info("withdrawalIdentityWalletReference has been got, withdrawalIdentityWalletReference={}", withdrawalIdentityWalletReference.toString());
 
-        return reference;
+        return withdrawalIdentityWalletReference;
     }
 
 }
