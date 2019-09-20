@@ -2,6 +2,7 @@ package com.rbkmoney.wallets_hooker.kafka;
 
 import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.fistful.webhooker.*;
+import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.handler.poller.DestinationEventSinkHandler;
 import com.rbkmoney.wallets_hooker.handler.poller.TestBeanFactory;
@@ -68,6 +69,11 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
                 .setIdentityId(TestBeanFactory.IDENTITY_ID)
                 .setUrl(TEST);
         Webhook webhook = requestHandler.create(webhookParams);
+
+        ThriftSerializer<Webhook> webhookThriftSerializer = new ThriftSerializer<>();
+
+        byte[] serialize = webhookThriftSerializer.serialize("t", webhook);
+        Assert.assertTrue(serialize.length > 0);
 
         Assert.assertEquals(TEST, webhook.getUrl());
 
