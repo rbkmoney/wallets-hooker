@@ -48,7 +48,7 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
 
-        if (webHookModels.isEmpty()) {
+        if (!webHookModels.isEmpty()) {
             log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
 
             StatusChange status = change.getStatus();
