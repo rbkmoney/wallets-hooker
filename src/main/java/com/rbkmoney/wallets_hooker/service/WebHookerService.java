@@ -34,7 +34,6 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
                 .map(webHookConverter::convert)
                 .collect(Collectors.toList());
 
-
         log.info("Finish get webhooks: size={}", webhooks.size());
 
         return webhooks;
@@ -60,14 +59,12 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
     public Webhook create(WebhookParams webhookParams) {
         try {
             log.info("Start create webhook: webhookParams={}", webhookParams);
-
             WebHookModel webHookModel = webHookParamsToWebHookConverter.convert(webhookParams);
-
             var webhook = webHookDao.create(webHookModel);
-
-            log.info("Finish create webhook: webhook={}", webhook);
-
-            return webHookConverter.convert(webhook);
+            Webhook webhookResult = webHookConverter.convert(webhook);
+            webhookResult.setEventFilter(webhookParams.getEventFilter());
+            log.info("Finish create webhook: webhookResult={}", webhookResult);
+            return webhookResult;
         } catch (Exception e) {
             log.error("Error when create webhook: {} ", webhookParams, e);
             throw new RuntimeException(e);

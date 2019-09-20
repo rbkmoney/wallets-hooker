@@ -8,6 +8,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import java.util.HashSet;
+
 @Component
 @RequiredArgsConstructor
 public class WebHookConverter implements Converter<Webhook, com.rbkmoney.fistful.webhooker.Webhook> {
@@ -23,7 +25,6 @@ public class WebHookConverter implements Converter<Webhook, com.rbkmoney.fistful
         webHook.setWalletId(event.getWalletId());
         IdentityKey identityKey = identityKeyDao.getByIdentity(event.getIdentityId());
         webHook.setPubKey(identityKey.getPubKey());
-        webHook.setEventFilter(new EventFilter());
         webHook.setUrl(event.getUrl());
         return webHook;
     }
