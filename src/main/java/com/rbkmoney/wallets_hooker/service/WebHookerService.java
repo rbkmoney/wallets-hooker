@@ -80,7 +80,6 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
             log.info("Trying to convert webhook, webhook={}", webhook);
 
             Webhook webhookResult = webHookConverter.convert(webhook);
-            webhookResult.setEventFilter(webhookParams.getEventFilter());
 
             log.info("webhook has been converted, webhookResult={}", webhookResult);
             log.info("Finish create webhook, webhook={}", webhook);
