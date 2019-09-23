@@ -14,6 +14,7 @@ import com.rbkmoney.wallets_hooker.domain.tables.records.WebhookRecord;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import com.zaxxer.hikari.HikariDataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.Operator;
 import org.jooq.Query;
 import org.jooq.impl.DSL;
@@ -28,9 +29,11 @@ import java.util.stream.Collectors;
 import static com.rbkmoney.wallets_hooker.domain.tables.IdentityKey.IDENTITY_KEY;
 import static com.rbkmoney.wallets_hooker.domain.tables.Webhook.WEBHOOK;
 import static com.rbkmoney.wallets_hooker.domain.tables.WebhookToEvents.WEBHOOK_TO_EVENTS;
+import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
 import static org.jooq.Comparator.EQUALS;
 
 @Component
+@Slf4j
 public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
 
     private static final int LIMIT = 1000;
@@ -89,6 +92,8 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 eventType -> webHookToEventsDao.create(new WebhookToEvents(webhook.getId(), eventType))
         );
 
+        log.info("webhook has been created, webHookModel={} ", webHookModel.toString());
+
         return webhook;
     }
 
@@ -99,6 +104,8 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
 
         query = getDslContext().delete(WEBHOOK).where(WEBHOOK.ID.eq(id));
         execute(query);
+
+        log.info("webhook has been deleted, id={} ", id);
     }
 
     @Override
@@ -125,6 +132,8 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                             .map(WebhookToEvents::getEventType)
                             .collect(Collectors.toSet())
             );
+
+            log.info("webhook has been got, webHookModel={} ", webHookModel.toString());
         }
 
         return webHookModel;
@@ -153,7 +162,8 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 )
                 .and(WEBHOOK_TO_EVENTS.EVENT_TYPE.eq(eventType))
                 .limit(LIMIT);
-        return fetch(query, webhookRowMapper);
+
+        return getSafeWebHook(query, () -> log.info("webhooks has been got, identityId={}, walletId={}, eventType={} ", identityId, walletId, eventType));
     }
 
     @Override
@@ -184,8 +194,9 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 .limit(LIMIT);
 
         List<WebHookModel> webHookModels = fetch(query, webHookModelRowMapper);
+        List<WebHookModel> webHookModelsSafe = webHookModels == null ? Collections.emptyList() : webHookModels;
 
-        if (webHookModels != null) {
+        if (!webHookModelsSafe.isEmpty()) {
             webHookModels.forEach(
                     webHookModel -> webHookModel.setEventTypes(
                             webHookToEventsDao.get(webHookModel.getId()).stream()
@@ -193,9 +204,11 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                                     .collect(Collectors.toSet())
                     )
             );
+
+            log.info("webhooks has been got, webHookModels={}", getLogWebHookModel(webHookModelsSafe));
         }
 
-        return webHookModels == null ? Collections.emptyList() : webHookModels;
+        return webHookModelsSafe;
     }
 
     @Override
@@ -204,6 +217,18 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 .selectFrom(WEBHOOK)
                 .where(WEBHOOK.IDENTITY_ID.eq(identityId))
                 .limit(LIMIT);
-        return fetch(query, webhookRowMapper);
+
+        return getSafeWebHook(query, () -> log.info("webhooks has been got, identityId={}", identityId));
+    }
+
+    private List<Webhook> getSafeWebHook(Query query, Runnable runIfNotEmpty) {
+        List<Webhook> webhooks = fetch(query, webhookRowMapper);
+        List<Webhook> webhooksSafe = webhooks == null ? Collections.emptyList() : webhooks;
+
+        if (!webhooksSafe.isEmpty()) {
+            runIfNotEmpty.run();
+        }
+
+        return webhooksSafe;
     }
 }

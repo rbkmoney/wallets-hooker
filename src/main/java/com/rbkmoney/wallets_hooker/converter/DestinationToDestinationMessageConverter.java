@@ -7,11 +7,13 @@ import com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
 import com.rbkmoney.wallets_hooker.exception.UnknownResourceException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class DestinationToDestinationMessageConverter implements Converter<Destination, com.rbkmoney.swag.wallets.webhook.events.model.Destination> {
 
     @Override
@@ -23,6 +25,9 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
         destination.setName(event.getName());
         DestinationResource destinationResource = initDestinationResource(event.getResource());
         destination.setResource(destinationResource);
+
+        log.info("destinationDamsel has been converted, destination={}", destination.toString());
+
         return destination;
     }
 

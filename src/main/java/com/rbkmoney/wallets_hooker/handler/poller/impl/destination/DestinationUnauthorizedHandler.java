@@ -20,8 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -39,26 +37,18 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
         String destinationId = sinkEvent.getSource();
 
         log.info("Start handling destination event status unauthorized change, destinationId={}", destinationId);
-        log.info("Trying to get destinationIdentityReference, destinationId={}", destinationId);
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(sinkEvent.getSource());
-
-        log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference.toString());
-        log.info("Trying to get webHookModels, destinationId={}", destinationId);
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
 
         if (!webHookModels.isEmpty()) {
-            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
             StatusChange status = change.getStatus();
 
             webHookModels.stream()
                     .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
                             sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
-        } else {
-            log.info("webHookModels is empty, destinationId={}", destinationId);
         }
 
         log.info("Finish handling destination event status unauthorized change, destinationId={}", destinationId);

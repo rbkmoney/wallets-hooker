@@ -40,8 +40,6 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
     public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String destinationId,
                                    Long eventId, Long parentId, String createdAt) {
         try {
-            log.info("Start generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
-
             Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
 
@@ -60,7 +58,7 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setEventId(eventId);
 
-            log.info("Finish generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
+            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", destinationId, model.toString());
 
             return webhookMessage;
         } catch (Exception e) {

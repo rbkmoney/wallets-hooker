@@ -35,22 +35,16 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
             com.rbkmoney.fistful.destination.Destination destinationDamsel = change.getCreated();
 
             log.info("Start handling destination created, destinationId={}", destinationId);
-            log.info("Trying to convert destinationDamsel, destinationDamsel={}", destinationDamsel);
 
             Destination destination = destinationToDestinationMessageConverter.convert(destinationDamsel);
             destination.setId(destinationId);
-
-            log.info("destinationDamsel has been converted, destination={}", destination.toString());
 
             DestinationMessage destinationMessage = new DestinationMessage();
             destinationMessage.setDestinationId(destinationId);
             destinationMessage.setMessage(objectMapper.writeValueAsString(destination));
 
-            log.info("Trying to create destinationMessage, destinationId={}", destinationId);
-
             destinationMessageDao.create(destinationMessage);
 
-            log.info("destinationMessage has been created, destinationId={}", destinationId);
             log.info("Finish handling destination created, destinationId={}", destinationId);
         } catch (JsonProcessingException e) {
             log.error("Error when handle DestinationCreated change: {} e: ", change, e);

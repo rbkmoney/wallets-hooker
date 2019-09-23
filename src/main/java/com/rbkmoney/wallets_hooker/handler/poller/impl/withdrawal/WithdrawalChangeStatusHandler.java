@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -39,20 +37,14 @@ public class WithdrawalChangeStatusHandler {
             Long parentId = Long.valueOf(reference.getEventId());
             String walletId = reference.getWalletId();
 
-            log.info("Trying to get webHookModels, withdrawalId={}, parentId={}, walletId={}, eventType={}", withdrawalId, parentId, walletId, eventType);
-
             List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
 
             if (!webHookModels.isEmpty()) {
-                log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
                 webHookModels.stream()
                         .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
                         .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
                                 withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
                         .forEach(webHookMessageSenderService::send);
-            } else {
-                log.info("webHookModels is empty, withdrawalId={}, parentId={}, walletId={}, eventType={}", withdrawalId, parentId, walletId, eventType);
             }
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
@@ -61,8 +53,6 @@ public class WithdrawalChangeStatusHandler {
     }
 
     private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {
-        log.info("Trying to get withdrawalIdentityWalletReference, withdrawalId={}", withdrawalId);
-
         WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = withdrawalReferenceDao.get(withdrawalId);
         while (withdrawalIdentityWalletReference == null) {
             log.info("Waiting withdrawal create: {} !", withdrawalId);
@@ -74,8 +64,6 @@ public class WithdrawalChangeStatusHandler {
                 Thread.currentThread().interrupt();
             }
         }
-
-        log.info("withdrawalIdentityWalletReference has been got, withdrawalIdentityWalletReference={}", withdrawalIdentityWalletReference.toString());
 
         return withdrawalIdentityWalletReference;
     }

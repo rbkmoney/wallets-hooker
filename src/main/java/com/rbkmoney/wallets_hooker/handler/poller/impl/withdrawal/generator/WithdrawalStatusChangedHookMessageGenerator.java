@@ -41,8 +41,6 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     @Override
     public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            log.info("Start generating webhook message from withdrawal event status changed, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
-
             String message = initRequestBody(event, withdrawalId, eventId, createdAt);
 
             WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
@@ -50,7 +48,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
 
-            log.info("Finish generating webhook message from withdrawal event status changed, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
+            log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {

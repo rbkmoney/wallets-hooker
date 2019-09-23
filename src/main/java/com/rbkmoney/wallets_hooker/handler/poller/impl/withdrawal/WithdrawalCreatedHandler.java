@@ -26,8 +26,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -55,11 +53,8 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
             String walletId = withdrawal.getSource();
 
             log.info("Start handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
-            log.info("Trying to get destinationIdentityReference, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
 
             DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
-
-            log.info("Trying to get walletIdentityReference, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
 
             WalletIdentityReference walletIdentityReference = walletReferenceDao.get(walletId);
 
@@ -75,25 +70,16 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                 }
             }
 
-            log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference.toString());
-            log.info("walletIdentityReference has been got, walletIdentityReference={}", walletIdentityReference.toString());
-
             createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().getSequence(), String.valueOf(eventId), withdrawalId);
-
-            log.info("Trying to get webHookModels, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
 
             List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
 
             if (!webHookModels.isEmpty()) {
-                log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
                 webHookModels.stream()
-                        .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                        .filter(webhook -> webhook.getWalletId() == null || webhook.getWalletId().equals(walletId))
                         .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawalId,
                                 eventId, sinkEvent.getCreatedAt()))
                         .forEach(webHookMessageSenderService::send);
-            } else {
-                log.info("webHookModels is empty, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
             }
 
             log.info("Finish handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
@@ -114,8 +100,6 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
     private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference,
                                  int sequenceId, String eventId, String withdrawalId) {
-        log.info("Trying to create withdrawalIdentityWalletReference, withdrawalId={}", withdrawalId);
-
         WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = new WithdrawalIdentityWalletReference();
         withdrawalIdentityWalletReference.setIdentityId(destinationIdentityReference.getIdentityId());
         withdrawalIdentityWalletReference.setWalletId(withdrawal.getSource());
@@ -124,8 +108,6 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         withdrawalIdentityWalletReference.setSequenceId((long) sequenceId);
 
         withdrawalReferenceDao.create(withdrawalIdentityWalletReference);
-
-        log.info("withdrawalIdentityWalletReference has been created: {} ", withdrawalIdentityWalletReference.toString());
     }
 
     @Override

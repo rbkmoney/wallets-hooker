@@ -8,6 +8,7 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.Webhook;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WebhookToEvents;
 import com.rbkmoney.wallets_hooker.utils.WebHookConverterUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class WebHookConverter implements Converter<Webhook, com.rbkmoney.fistful.webhooker.Webhook> {
 
     private final IdentityKeyDao identityKeyDao;
@@ -28,14 +30,17 @@ public class WebHookConverter implements Converter<Webhook, com.rbkmoney.fistful
                 .map(WebhookToEvents::getEventType)
                 .collect(Collectors.toSet());
 
-        var webHookDamsel = new com.rbkmoney.fistful.webhooker.Webhook();
-        webHookDamsel.setId(webhook.getId());
-        webHookDamsel.setEnabled(webhook.getEnabled());
-        webHookDamsel.setIdentityId(webhook.getIdentityId());
-        webHookDamsel.setWalletId(webhook.getWalletId());
-        webHookDamsel.setPubKey(identityKey.getPubKey());
-        webHookDamsel.setUrl(webhook.getUrl());
-        webHookDamsel.setEventFilter(WebHookConverterUtils.generateEventFilter(eventTypes));
-        return webHookDamsel;
+        var webhookDamsel = new com.rbkmoney.fistful.webhooker.Webhook();
+        webhookDamsel.setId(webhook.getId());
+        webhookDamsel.setEnabled(webhook.getEnabled());
+        webhookDamsel.setIdentityId(webhook.getIdentityId());
+        webhookDamsel.setWalletId(webhook.getWalletId());
+        webhookDamsel.setPubKey(identityKey.getPubKey());
+        webhookDamsel.setUrl(webhook.getUrl());
+        webhookDamsel.setEventFilter(WebHookConverterUtils.generateEventFilter(eventTypes));
+
+        log.info("webhook has been converted, webhookDamsel={}", webhookDamsel);
+
+        return webhookDamsel;
     }
 }
