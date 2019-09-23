@@ -39,13 +39,11 @@ public class WithdrawalChangeStatusHandler {
 
             List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
 
-            if (!webHookModels.isEmpty()) {
-                webHookModels.stream()
-                        .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
-                        .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                                withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
-                        .forEach(webHookMessageSenderService::send);
-            }
+            webHookModels.stream()
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                    .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
+                            withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
+                    .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
             throw new HandleEventException("WithdrawalChangeStatusHandler error when handle change!", e);

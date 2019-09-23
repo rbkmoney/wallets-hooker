@@ -42,14 +42,12 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
 
-        if (!webHookModels.isEmpty()) {
-            StatusChange status = change.getStatus();
+        StatusChange status = change.getStatus();
 
-            webHookModels.stream()
-                    .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
-                            sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
-                    .forEach(webHookMessageSenderService::send);
-        }
+        webHookModels.stream()
+                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(status, webhook, sinkEvent.getSource(),
+                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
+                .forEach(webHookMessageSenderService::send);
 
         log.info("Finish handling destination event status unauthorized change, destinationId={}", destinationId);
     }
