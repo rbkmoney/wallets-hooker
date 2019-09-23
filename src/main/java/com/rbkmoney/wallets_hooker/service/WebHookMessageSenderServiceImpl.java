@@ -20,11 +20,9 @@ public class WebHookMessageSenderServiceImpl implements WebHookMessageSenderServ
 
     public void send(WebhookMessage webhookMessage) {
         try {
-            log.info("Start sending webhook message to kafka, topicName={}, sourceId={}", topicName, webhookMessage.getSourceId());
-
             kafkaTemplate.send(topicName, webhookMessage.getSourceId(), webhookMessage).get();
 
-            log.info("Finish sending webhook message to kafka, topicName={}, sourceId={}", topicName, webhookMessage.getSourceId());
+            log.info("Webhook message to kafka was sent, topicName={}, sourceId={}", topicName, webhookMessage.getSourceId());
         } catch (InterruptedException e) {
             log.error("InterruptedException command: {} e: ", webhookMessage, e);
             Thread.currentThread().interrupt();

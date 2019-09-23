@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -41,8 +40,6 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
     public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String destinationId,
                                    Long eventId, Long parentId, String createdAt) {
         try {
-            log.info("Start generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
-
             Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
 
@@ -61,11 +58,12 @@ public class DestinationCreatedHookMessageGenerator implements HookMessageGenera
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setEventId(eventId);
 
-            log.info("Finish generating webhook message from destination event created, destinationId={}, model={}", destinationId, model.toString());
+            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", destinationId, model.toString());
 
             return webhookMessage;
         } catch (Exception e) {
-            throw new GenerateMessageException(String.format("DestinationCreatedHookMessageGenerator error when generate, destinationMessage=%s model=%s", destinationMessage, model.toString()), e);
+            log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model.toString(), e);
+            throw new GenerateMessageException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
         }
     }
 

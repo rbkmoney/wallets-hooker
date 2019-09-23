@@ -4,6 +4,7 @@ import com.rbkmoney.mapper.RecordRowMapper;
 import com.rbkmoney.wallets_hooker.dao.AbstractDao;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.domain.tables.records.DestinationMessageRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.InsertReturningStep;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import javax.sql.DataSource;
 import static com.rbkmoney.wallets_hooker.domain.Tables.DESTINATION_MESSAGE;
 
 @Component
+@Slf4j
 public class DestinationMessageDaoImpl extends AbstractDao implements DestinationMessageDao {
 
     private final RowMapper<DestinationMessage> listRecordRowMapper;
@@ -31,15 +33,23 @@ public class DestinationMessageDaoImpl extends AbstractDao implements Destinatio
                 .onConflict(DESTINATION_MESSAGE.DESTINATION_ID)
                 .doNothing();
         execute(insertReturningStep);
+
+        log.info("destinationMessage has been created, destinationId={}", message.getDestinationId());
     }
 
     @Override
     public DestinationMessage get(String id) {
-        return fetchOne(getDslContext()
+        DestinationMessage destinationMessage = fetchOne(getDslContext()
                         .select(DESTINATION_MESSAGE.DESTINATION_ID,
                                 DESTINATION_MESSAGE.MESSAGE)
                         .from(DESTINATION_MESSAGE)
                         .where(DESTINATION_MESSAGE.DESTINATION_ID.eq(id)),
                 listRecordRowMapper);
+
+        if (destinationMessage != null) {
+            log.info("destinationMessage has been got, destinationId={}", id);
+        }
+
+        return destinationMessage;
     }
 }

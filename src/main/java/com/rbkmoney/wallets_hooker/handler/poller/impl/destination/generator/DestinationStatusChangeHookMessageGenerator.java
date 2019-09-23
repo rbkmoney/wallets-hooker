@@ -47,8 +47,6 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     @Override
     public WebhookMessage generate(StatusChange statusChange, WebHookModel model, String destinationId, Long eventId, Long parentId, String createdAt) {
         try {
-            log.info("Start generating webhook message from destination event status changed, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
-
             String message = generateMessage(statusChange, destinationId, eventId, createdAt);
 
             Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
@@ -58,7 +56,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
             webhookMessage.setAdditionalHeaders(additionalHeaders);
             webhookMessage.setRequestBody(message.getBytes());
 
-            log.info("Finish generating webhook message from destination event status changed, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
+            log.info("Webhook message from destination_event_status_changed was generated, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {

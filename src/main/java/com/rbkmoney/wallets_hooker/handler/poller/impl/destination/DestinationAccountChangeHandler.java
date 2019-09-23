@@ -22,8 +22,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -49,11 +47,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
 
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identityId, null, EventType.DESTINATION_CREATED);
 
-        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
         DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
-
-        log.info("destinationMessage has been got, destinationId={}", destinationId);
 
         webHookModels.stream()
                 .map(webhook -> destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, destinationId, sinkEvent.getId(), sinkEvent.getCreatedAt()))
@@ -63,15 +57,13 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
     }
 
     private void createDestinationReference(SinkEvent sinkEvent, String identityId) {
-        DestinationIdentityReference reference = new DestinationIdentityReference();
-        reference.setDestinationId(sinkEvent.getSource());
-        reference.setIdentityId(identityId);
-        reference.setEventId(String.valueOf(sinkEvent.getId()));
-        reference.setSequenceId((long) sinkEvent.getPayload().getSequence());
+        DestinationIdentityReference destinationIdentityReference = new DestinationIdentityReference();
+        destinationIdentityReference.setDestinationId(sinkEvent.getSource());
+        destinationIdentityReference.setIdentityId(identityId);
+        destinationIdentityReference.setEventId(String.valueOf(sinkEvent.getId()));
+        destinationIdentityReference.setSequenceId((long) sinkEvent.getPayload().getSequence());
 
-        destinationReferenceDao.create(reference);
-
-        log.info("Handle destination reference created reference: {} ", reference);
+        destinationReferenceDao.create(destinationIdentityReference);
     }
 
     @Override
