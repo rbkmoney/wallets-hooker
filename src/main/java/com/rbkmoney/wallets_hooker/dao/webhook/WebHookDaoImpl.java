@@ -197,7 +197,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
         List<WebHookModel> webHookModelsSafe = webHookModels == null ? Collections.emptyList() : webHookModels;
 
         if (!webHookModelsSafe.isEmpty()) {
-            webHookModels.forEach(
+            webHookModelsSafe.forEach(
                     webHookModel -> webHookModel.setEventTypes(
                             webHookToEventsDao.get(webHookModel.getId()).stream()
                                     .map(WebhookToEvents::getEventType)
