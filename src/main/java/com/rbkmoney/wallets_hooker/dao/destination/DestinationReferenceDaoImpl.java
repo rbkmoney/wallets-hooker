@@ -4,6 +4,7 @@ import com.rbkmoney.mapper.RecordRowMapper;
 import com.rbkmoney.wallets_hooker.dao.AbstractDao;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.records.DestinationIdentityReferenceRecord;
+import lombok.extern.slf4j.Slf4j;
 import org.jooq.InsertReturningStep;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
@@ -13,6 +14,7 @@ import javax.sql.DataSource;
 import static com.rbkmoney.wallets_hooker.domain.tables.DestinationIdentityReference.DESTINATION_IDENTITY_REFERENCE;
 
 @Component
+@Slf4j
 public class DestinationReferenceDaoImpl extends AbstractDao implements DestinationReferenceDao {
 
     private final RowMapper<DestinationIdentityReference> listRecordRowMapper;
@@ -31,11 +33,13 @@ public class DestinationReferenceDaoImpl extends AbstractDao implements Destinat
                 .onConflict(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID)
                 .doNothing();
         execute(insertReturningStep);
+
+        log.info("destinationIdentityReference has been created, destinationIdentityReference={} ", reference.toString());
     }
 
     @Override
     public DestinationIdentityReference get(String id) {
-        return fetchOne(getDslContext()
+        DestinationIdentityReference reference = fetchOne(getDslContext()
                         .select(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID,
                                 DESTINATION_IDENTITY_REFERENCE.IDENTITY_ID,
                                 DESTINATION_IDENTITY_REFERENCE.EVENT_ID,
@@ -43,5 +47,11 @@ public class DestinationReferenceDaoImpl extends AbstractDao implements Destinat
                         .from(DESTINATION_IDENTITY_REFERENCE)
                         .where(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID.eq(id)),
                 listRecordRowMapper);
+
+        if (reference != null) {
+            log.info("destinationIdentityReference has been got, destinationIdentityReference={}", reference.toString());
+        }
+
+        return reference;
     }
 }

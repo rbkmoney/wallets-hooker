@@ -26,16 +26,17 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
     private final DestinationToDestinationMessageConverter destinationToDestinationMessageConverter;
     private final ObjectMapper objectMapper;
 
-    private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));;
+    private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent sinkEvent) {
         try {
             String destinationId = sinkEvent.getSource();
+            com.rbkmoney.fistful.destination.Destination destinationDamsel = change.getCreated();
 
             log.info("Start handling destination created, destinationId={}", destinationId);
 
-            Destination destination = destinationToDestinationMessageConverter.convert(change.getCreated());
+            Destination destination = destinationToDestinationMessageConverter.convert(destinationDamsel);
             destination.setId(destinationId);
 
             DestinationMessage destinationMessage = new DestinationMessage();

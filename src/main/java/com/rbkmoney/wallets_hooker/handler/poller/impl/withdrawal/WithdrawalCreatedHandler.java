@@ -26,8 +26,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -72,17 +70,12 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                 }
             }
 
-            log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference);
-            log.info("walletIdentityReference has been got, walletIdentityReference={}", walletIdentityReference);
-
             createReference(withdrawal, destinationIdentityReference, sinkEvent.getPayload().getSequence(), String.valueOf(eventId), withdrawalId);
 
             List<WebHookModel> webHookModels = findWebhookModels(destinationIdentityReference, walletIdentityReference);
 
-            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
             webHookModels.stream()
-                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                    .filter(webhook -> webhook.getWalletId() == null || webhook.getWalletId().equals(walletId))
                     .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawalId,
                             eventId, sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
@@ -105,16 +98,14 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
     private void createReference(Withdrawal withdrawal, DestinationIdentityReference destinationIdentityReference,
                                  int sequenceId, String eventId, String withdrawalId) {
-        WithdrawalIdentityWalletReference reference = new WithdrawalIdentityWalletReference();
-        reference.setIdentityId(destinationIdentityReference.getIdentityId());
-        reference.setWalletId(withdrawal.getSource());
-        reference.setWithdrawalId(withdrawalId);
-        reference.setEventId(eventId);
-        reference.setSequenceId((long) sequenceId);
+        WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = new WithdrawalIdentityWalletReference();
+        withdrawalIdentityWalletReference.setIdentityId(destinationIdentityReference.getIdentityId());
+        withdrawalIdentityWalletReference.setWalletId(withdrawal.getSource());
+        withdrawalIdentityWalletReference.setWithdrawalId(withdrawalId);
+        withdrawalIdentityWalletReference.setEventId(eventId);
+        withdrawalIdentityWalletReference.setSequenceId((long) sequenceId);
 
-        withdrawalReferenceDao.create(reference);
-
-        log.info("Handle withdrawal reference created reference: {} ", reference);
+        withdrawalReferenceDao.create(withdrawalIdentityWalletReference);
     }
 
     @Override

@@ -28,48 +28,51 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
 
     @Override
     public List<Webhook> getList(String identityId) {
-        log.info("Start get webhooks: identityId={}", identityId);
+        log.info("Start get webhooks, identityId={}", identityId);
 
         List<Webhook> webhooks = webHookDao.getByIdentity(identityId).stream()
                 .map(webHookConverter::convert)
                 .collect(Collectors.toList());
 
-
-        log.info("Finish get webhooks: size={}", webhooks.size());
+        log.info("Finish get webhooks, identityId={}, size={}", identityId, webhooks.size());
 
         return webhooks;
     }
 
     @Override
     public Webhook get(long id) throws WebhookNotFound {
-        log.info("Start get webhook: id={}", id);
+        log.info("Start get Webhook, id={}", id);
 
         WebHookModel webHookModel = webHookDao.getById(id);
 
-        log.info("Finish get webhook: webHookModel={}", webHookModel);
-
         if (webHookModel == null) {
-            log.warn("Webhook not found: {}", id);
+            log.warn("Webhook not found, {}", id);
             throw new WebhookNotFound();
         }
 
-        return webHookModelToWebHookConverter.convert(webHookModel);
+        Webhook webhook = webHookModelToWebHookConverter.convert(webHookModel);
+
+        log.info("Finish get Webhook, webhook={}", webhook);
+
+        return webhook;
     }
 
     @Override
     public Webhook create(WebhookParams webhookParams) {
         try {
-            log.info("Start create webhook: webhookParams={}", webhookParams);
+            log.info("Start create webhook, webhookParams={}", webhookParams);
 
             WebHookModel webHookModel = webHookParamsToWebHookConverter.convert(webhookParams);
 
             var webhook = webHookDao.create(webHookModel);
 
-            log.info("Finish create webhook: webhook={}", webhook);
+            Webhook webhookResult = webHookConverter.convert(webhook);
 
-            return webHookConverter.convert(webhook);
+            log.info("Finish create webhook, webhook={}", webhook);
+
+            return webhookResult;
         } catch (Exception e) {
-            log.error("Error when create webhook: {} ", webhookParams, e);
+            log.error("Error when create webhook, {} ", webhookParams, e);
             throw new RuntimeException(e);
         }
     }
@@ -77,13 +80,13 @@ public class WebHookerService implements WebhookManagerSrv.Iface {
     @Override
     public void delete(long id) throws WebhookNotFound {
         try {
-            log.info("Start delete webhook: id={}", id);
+            log.info("Start delete webhook, id={}", id);
 
             webHookDao.delete(id);
 
-            log.info("Finish delete webhook: id={}", id);
+            log.info("Finish delete webhook, id={}", id);
         } catch (Exception e) {
-            log.error("Fail to delete webhook: {}", id, e);
+            log.error("Fail to delete webhook, {}", id, e);
             throw new WebhookNotFound();
         }
     }

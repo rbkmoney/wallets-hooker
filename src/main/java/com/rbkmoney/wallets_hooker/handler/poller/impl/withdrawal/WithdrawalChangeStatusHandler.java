@@ -17,8 +17,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,8 +39,6 @@ public class WithdrawalChangeStatusHandler {
 
             List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(reference.getIdentityId(), reference.getWalletId(), eventType);
 
-            log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
-
             webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
                     .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
@@ -55,21 +51,19 @@ public class WithdrawalChangeStatusHandler {
     }
 
     private WithdrawalIdentityWalletReference waitReferenceWithdrawal(String withdrawalId) {
-        WithdrawalIdentityWalletReference reference = withdrawalReferenceDao.get(withdrawalId);
-        while (reference == null) {
+        WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = withdrawalReferenceDao.get(withdrawalId);
+        while (withdrawalIdentityWalletReference == null) {
             log.info("Waiting withdrawal create: {} !", withdrawalId);
             try {
                 Thread.sleep(waitingPollPeriod);
-                reference = withdrawalReferenceDao.get(withdrawalId);
+                withdrawalIdentityWalletReference = withdrawalReferenceDao.get(withdrawalId);
             } catch (InterruptedException e) {
                 log.error("Error when waiting withdrawal create: {} e: ", withdrawalId, e);
                 Thread.currentThread().interrupt();
             }
         }
 
-        log.info("withdrawalReferenceDao has been got, withdrawalReferenceDao={}", withdrawalReferenceDao);
-
-        return reference;
+        return withdrawalIdentityWalletReference;
     }
 
 }

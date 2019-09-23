@@ -20,8 +20,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-import static com.rbkmoney.wallets_hooker.utils.LogUtils.getLogWebHookModel;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -42,11 +40,7 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(sinkEvent.getSource());
 
-        log.info("destinationIdentityReference has been got, destinationIdentityReference={}", destinationIdentityReference.toString());
-
         List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
-
-        log.info("webHookModels has been got, models={}", getLogWebHookModel(webHookModels));
 
         StatusChange status = change.getStatus();
 

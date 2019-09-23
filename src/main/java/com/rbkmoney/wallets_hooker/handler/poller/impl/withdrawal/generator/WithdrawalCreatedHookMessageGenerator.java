@@ -41,8 +41,6 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
     @Override
     public WebhookMessage generate(Withdrawal event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            log.info("Start generating webhook message from withdrawal event created, withdrawalId={}, model={}", withdrawalId, model.toString());
-
             var withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
             withdrawal.setDestination(event.getDestination());
             withdrawal.setId(withdrawalId);
@@ -62,7 +60,7 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setParentEventId(parentId);
 
-            log.info("Finish generating webhook message from withdrawal event created, withdrawalId={}, model={}", withdrawalId, model.toString());
+            log.info("Webhook message from withdrawal_event_created was generated, withdrawalId={}, model={}", withdrawalId, model.toString());
 
             return webhookMessage;
         } catch (JsonProcessingException e) {
