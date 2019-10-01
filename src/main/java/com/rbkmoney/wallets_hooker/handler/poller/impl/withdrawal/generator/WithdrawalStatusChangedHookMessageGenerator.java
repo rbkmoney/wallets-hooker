@@ -2,7 +2,8 @@ package com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rbkmoney.fistful.withdrawal.WithdrawalStatus;
+import com.rbkmoney.fistful.withdrawal.StatusChange;
+import com.rbkmoney.fistful.withdrawal.status.Status;
 import com.rbkmoney.swag.wallets.webhook.events.model.Event;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalFailed;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalSucceeded;
@@ -24,9 +25,9 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageGenerator<WithdrawalStatus> {
+public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageGenerator<StatusChange> {
 
-    private final WebHookMessageGeneratorServiceImpl<WithdrawalStatus> generatorService;
+    private final WebHookMessageGeneratorServiceImpl<StatusChange> generatorService;
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
@@ -34,14 +35,14 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
     private Long parentIsNotExistId;
 
     @Override
-    public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
+    public WebhookMessage generate(StatusChange event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
         return generate(event, model, sourceId, eventId, parentIsNotExistId, createdAt);
     }
 
     @Override
-    public WebhookMessage generate(WithdrawalStatus event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
+    public WebhookMessage generate(StatusChange event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
         try {
-            String message = initRequestBody(event, withdrawalId, eventId, createdAt);
+            String message = initRequestBody(event.getStatus(), withdrawalId, eventId, createdAt);
 
             WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
             webhookMessage.setParentEventId(initPatenId(model, parentId));
@@ -65,8 +66,8 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
         return parentIsNotExistId;
     }
 
-    private String initRequestBody(WithdrawalStatus event, String withdrawalId, Long eventId, String createdAt) throws JsonProcessingException {
-        if (event.isSetFailed()) {
+    private String initRequestBody(Status status, String withdrawalId, Long eventId, String createdAt) throws JsonProcessingException {
+        if (status.isSetFailed()) {
             WithdrawalFailed withdrawalFailed = new WithdrawalFailed()
                     .withdrawalID(withdrawalId);
             withdrawalFailed.setEventType(Event.EventTypeEnum.WITHDRAWALFAILED);
@@ -74,7 +75,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             withdrawalFailed.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
             withdrawalFailed.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
             return objectMapper.writeValueAsString(withdrawalFailed);
-        } else if (event.isSetSucceeded()) {
+        } else if (status.isSetSucceeded()) {
             WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded()
                     .withdrawalID(withdrawalId);
             withdrawalSucceeded.setEventType(Event.EventTypeEnum.WITHDRAWALSUCCEEDED);
@@ -83,8 +84,8 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             withdrawalSucceeded.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
             return objectMapper.writeValueAsString(withdrawalSucceeded);
         } else {
-            log.error("Unknown WithdrawalStatus status: {} withdrawalId: {}", event, withdrawalId);
-            String message = String.format("Unknown WithdrawalStatus status: %s withdrawalId: %s", event, withdrawalId);
+            log.error("Unknown WithdrawalStatus status: {} withdrawalId: {}", status, withdrawalId);
+            String message = String.format("Unknown WithdrawalStatus status: %s withdrawalId: %s", status, withdrawalId);
             throw new GenerateMessageException(message);
         }
     }
