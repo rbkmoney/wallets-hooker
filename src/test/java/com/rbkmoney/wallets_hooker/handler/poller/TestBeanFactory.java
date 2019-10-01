@@ -11,10 +11,12 @@ import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.fistful.wallet.AccountChange;
 import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
+import com.rbkmoney.fistful.withdrawal.CreatedChange;
 import com.rbkmoney.fistful.withdrawal.EventSinkPayload;
+import com.rbkmoney.fistful.withdrawal.StatusChange;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
-import com.rbkmoney.fistful.withdrawal.WithdrawalStatus;
-import com.rbkmoney.fistful.withdrawal.WithdrawalSucceeded;
+import com.rbkmoney.fistful.withdrawal.status.Status;
+import com.rbkmoney.fistful.withdrawal.status.Succeeded;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import org.jetbrains.annotations.NotNull;
@@ -98,7 +100,8 @@ public class TestBeanFactory {
         currency.setSymbolicCode("RUB");
         body.setCurrency(currency);
         withdrawal.setBody(body);
-        withdrawalChange.setCreated(withdrawal);
+        withdrawalChange.setCreated(new CreatedChange()
+                .setWithdrawal(withdrawal));
 
         com.rbkmoney.fistful.withdrawal.SinkEvent withdrawalSink = new com.rbkmoney.fistful.withdrawal.SinkEvent();
         EventSinkPayload eventSinkPayload = new EventSinkPayload();
@@ -147,9 +150,8 @@ public class TestBeanFactory {
         payload.setSequence(1);
         ArrayList<com.rbkmoney.fistful.withdrawal.Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.withdrawal.Change change = new com.rbkmoney.fistful.withdrawal.Change();
-        WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded();
-        WithdrawalStatus succeeded = WithdrawalStatus.succeeded(withdrawalSucceeded);
-        change.setStatusChanged(succeeded);
+        change.setStatusChanged(new StatusChange()
+                .setStatus(Status.succeeded(new Succeeded())));
         changes.add(change);
 
         payload.setChanges(changes);

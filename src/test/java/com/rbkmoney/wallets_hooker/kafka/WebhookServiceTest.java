@@ -106,9 +106,11 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
 
         consumer.subscribe(List.of(topicName));
         ConsumerRecords<String, WebhookMessage> poll = consumer.poll(Duration.ofMillis(5000));
+        Iterable<ConsumerRecord<String, WebhookMessage>> records = poll.records(topicName);
+        records.forEach(consumerRecord -> System.out.println(consumerRecord));
+
         Assert.assertEquals(4L, poll.count());
 
-        Iterable<ConsumerRecord<String, WebhookMessage>> records = poll.records(topicName);
 
         ArrayList<WebhookMessage> webhookMessages = new ArrayList<>();
         records.forEach(consumerRecord -> webhookMessages.add(consumerRecord.value()));

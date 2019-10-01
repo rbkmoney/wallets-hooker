@@ -47,7 +47,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     public void handle(Change change, SinkEvent sinkEvent) {
         try {
             long eventId = sinkEvent.getId();
-            Withdrawal withdrawal = change.getCreated();
+            Withdrawal withdrawal = change.getCreated().getWithdrawal();
             String withdrawalId = sinkEvent.getSource();
             String destinationId = withdrawal.getDestination();
             String walletId = withdrawal.getSource();

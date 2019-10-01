@@ -18,7 +18,7 @@ public class WithdrawalSucceededHandler extends AbstractWithdrawalEventHandler {
 
     private final WithdrawalChangeStatusHandler withdrawalChangeStatusHandler;
 
-    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.succeeded", new IsNullCondition().not()));
+    private Filter filter = new PathConditionFilter(new PathConditionRule("status_changed.status.succeeded", new IsNullCondition().not()));
 
     @Override
     public void handle(Change change, SinkEvent event) {
