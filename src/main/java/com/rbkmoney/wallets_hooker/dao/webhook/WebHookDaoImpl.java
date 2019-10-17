@@ -17,6 +17,8 @@ import com.zaxxer.hikari.HikariDataSource;
 import lombok.extern.slf4j.Slf4j;
 import org.jooq.Operator;
 import org.jooq.Query;
+import org.jooq.Record7;
+import org.jooq.SelectOnConditionStep;
 import org.jooq.impl.DSL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.RowMapper;
@@ -140,17 +142,8 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
     }
 
     @Override
-    public List<Webhook> getByIdentityAndWalletId(String identityId, String walletId, EventType eventType) {
-        Query query = getDslContext()
-                .select(
-                        WEBHOOK.ID,
-                        WEBHOOK.IDENTITY_ID,
-                        WEBHOOK.ENABLED,
-                        WEBHOOK.URL,
-                        WEBHOOK.WALLET_ID
-                )
-                .from(WEBHOOK)
-                .join(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
+    public List<WebHookModel> getModelByIdentityAndWalletId(String identityId, String walletId, EventType eventType) {
+        Query query = createSelectForWebHookModel()
                 .where(
                         appendConditions(
                                 DSL.trueCondition(),
@@ -162,13 +155,11 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 )
                 .and(WEBHOOK_TO_EVENTS.EVENT_TYPE.eq(eventType))
                 .limit(LIMIT);
-
-        return getSafeWebHook(query, () -> log.info("webhooks has been got, identityId={}, walletId={}, eventType={} ", identityId, walletId, eventType));
+        return getWebHookModels(query);
     }
 
-    @Override
-    public List<WebHookModel> getModelByIdentityAndWalletId(String identityId, String walletId, EventType eventType) {
-        Query query = getDslContext()
+    private SelectOnConditionStep<Record7<Long, String, Boolean, String, String, String, String>> createSelectForWebHookModel() {
+        return getDslContext()
                 .select(
                         WEBHOOK.ID,
                         WEBHOOK.IDENTITY_ID,
@@ -180,35 +171,7 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 )
                 .from(WEBHOOK)
                 .leftJoin(WEBHOOK_TO_EVENTS).on(WEBHOOK.ID.eq(WEBHOOK_TO_EVENTS.HOOK_ID))
-                .leftJoin(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID))
-                .where(
-                        appendConditions(
-                                DSL.trueCondition(),
-                                Operator.AND,
-                                new ConditionParameterSource()
-                                        .addValue(WEBHOOK.IDENTITY_ID, identityId, EQUALS)
-                                        .addValue(WEBHOOK.WALLET_ID, walletId, EQUALS)
-                        )
-                )
-                .and(WEBHOOK_TO_EVENTS.EVENT_TYPE.eq(eventType))
-                .limit(LIMIT);
-
-        List<WebHookModel> webHookModels = fetch(query, webHookModelRowMapper);
-        List<WebHookModel> webHookModelsSafe = webHookModels == null ? Collections.emptyList() : webHookModels;
-
-        if (!webHookModelsSafe.isEmpty()) {
-            webHookModelsSafe.forEach(
-                    webHookModel -> webHookModel.setEventTypes(
-                            webHookToEventsDao.get(webHookModel.getId()).stream()
-                                    .map(WebhookToEvents::getEventType)
-                                    .collect(Collectors.toSet())
-                    )
-            );
-
-            log.info("webhooks has been got, webHookModels={}", getLogWebHookModel(webHookModelsSafe));
-        }
-
-        return webHookModelsSafe;
+                .leftJoin(IDENTITY_KEY).on(WEBHOOK.IDENTITY_ID.eq(IDENTITY_KEY.IDENTITY_ID));
     }
 
     @Override
@@ -217,18 +180,40 @@ public class WebHookDaoImpl extends AbstractDao implements WebHookDao {
                 .selectFrom(WEBHOOK)
                 .where(WEBHOOK.IDENTITY_ID.eq(identityId))
                 .limit(LIMIT);
-
         return getSafeWebHook(query, () -> log.info("webhooks has been got, identityId={}", identityId));
+    }
+
+    @Override
+    public List<WebHookModel> getByIdentityAndEventType(String identityId, EventType eventType) {
+        Query query = createSelectForWebHookModel()
+                .where(WEBHOOK.IDENTITY_ID.eq(identityId)
+                        .and(WEBHOOK_TO_EVENTS.EVENT_TYPE.eq(eventType)))
+                .limit(LIMIT);
+        return getWebHookModels(query);
+    }
+
+    private List<WebHookModel> getWebHookModels(Query query) {
+        List<WebHookModel> webHookModels = fetch(query, webHookModelRowMapper);
+        List<WebHookModel> webHookModelsSafe = webHookModels == null ? Collections.emptyList() : webHookModels;
+        if (!webHookModelsSafe.isEmpty()) {
+            webHookModelsSafe.forEach(
+                    webHookModel -> webHookModel.setEventTypes(
+                            webHookToEventsDao.get(webHookModel.getId()).stream()
+                                    .map(WebhookToEvents::getEventType)
+                                    .collect(Collectors.toSet())
+                    )
+            );
+            log.info("webhooks has been got, webHookModels={}", getLogWebHookModel(webHookModelsSafe));
+        }
+        return webHookModelsSafe;
     }
 
     private List<Webhook> getSafeWebHook(Query query, Runnable runIfNotEmpty) {
         List<Webhook> webhooks = fetch(query, webhookRowMapper);
         List<Webhook> webhooksSafe = webhooks == null ? Collections.emptyList() : webhooks;
-
         if (!webhooksSafe.isEmpty()) {
             runIfNotEmpty.run();
         }
-
         return webhooksSafe;
     }
 }

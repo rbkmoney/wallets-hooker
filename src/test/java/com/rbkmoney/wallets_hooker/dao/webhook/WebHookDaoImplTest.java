@@ -77,13 +77,13 @@ public class WebHookDaoImplTest extends AbstractPostgresIntegrationTest {
                 .build();
         Webhook webhook2 = webHookDao.create(webhook);
 
-        List<WebHookModel> modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
+        List<WebHookModel> modelByIdentityAndWalletId = webHookDao.getByIdentityAndEventType(IDENTITY_ID, EventType.DESTINATION_CREATED);
 
         assertEquals(1, modelByIdentityAndWalletId.size());
         assertNotNull(modelByIdentityAndWalletId.get(0).getEventTypes());
 
         webHookDao.create(webhook);
-        modelByIdentityAndWalletId = webHookDao.getModelByIdentityAndWalletId(IDENTITY_ID, null, EventType.DESTINATION_CREATED);
+        modelByIdentityAndWalletId = webHookDao.getByIdentityAndEventType(IDENTITY_ID, EventType.DESTINATION_CREATED);
         assertEquals(2, modelByIdentityAndWalletId.size());
         assertNotNull(modelByIdentityAndWalletId.get(0).getEventTypes());
 
