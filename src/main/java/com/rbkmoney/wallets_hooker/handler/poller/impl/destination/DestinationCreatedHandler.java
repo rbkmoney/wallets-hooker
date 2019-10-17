@@ -32,11 +32,9 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
     public void handle(Change change, SinkEvent sinkEvent) {
         try {
             String destinationId = sinkEvent.getSource();
-            com.rbkmoney.fistful.destination.Destination destinationDamsel = change.getCreated();
-
             log.info("Start handling destination created, destinationId={}", destinationId);
 
-            Destination destination = destinationToDestinationMessageConverter.convert(destinationDamsel);
+            Destination destination = destinationToDestinationMessageConverter.convert( change.getCreated());
             destination.setId(destinationId);
 
             DestinationMessage destinationMessage = new DestinationMessage();

@@ -35,12 +35,11 @@ public class WithdrawalChangeStatusHandler {
             WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
 
             Long parentId = Long.valueOf(reference.getEventId());
-            String walletId = reference.getWalletId();
 
             List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(reference.getIdentityId(), eventType);
 
             webHookModels.stream()
-                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(walletId))
+                    .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(reference.getWalletId()))
                     .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
                             withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
