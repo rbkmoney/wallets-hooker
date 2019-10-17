@@ -45,7 +45,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
 
         createDestinationReference(sinkEvent, identityId);
 
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(identityId, null, EventType.DESTINATION_CREATED);
+        List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(identityId, EventType.DESTINATION_CREATED);
 
         DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
 

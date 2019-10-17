@@ -40,7 +40,7 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(sinkEvent.getSource());
 
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_UNAUTHORIZED);
+        List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.DESTINATION_UNAUTHORIZED);
 
         StatusChange status = change.getStatus();
 

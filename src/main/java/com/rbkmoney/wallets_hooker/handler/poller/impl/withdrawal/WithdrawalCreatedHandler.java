@@ -88,9 +88,9 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
     }
 
     private List<WebHookModel> findWebhookModels(DestinationIdentityReference destinationIdentityReference, WalletIdentityReference walletIdentityReference) {
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
+        List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.WITHDRAWAL_CREATED);
         if (!destinationIdentityReference.getIdentityId().equals(walletIdentityReference.getIdentityId())) {
-            List<WebHookModel> webHookModelsWallets = webHookDao.getModelByIdentityAndWalletId(walletIdentityReference.getIdentityId(), null, EventType.WITHDRAWAL_CREATED);
+            List<WebHookModel> webHookModelsWallets = webHookDao.getByIdentityAndEventType(walletIdentityReference.getIdentityId(), EventType.WITHDRAWAL_CREATED);
             webHookModels.addAll(webHookModelsWallets);
         }
         return webHookModels;

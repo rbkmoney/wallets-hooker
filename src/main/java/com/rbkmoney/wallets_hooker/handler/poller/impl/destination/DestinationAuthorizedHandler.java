@@ -40,7 +40,7 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
 
-        List<WebHookModel> webHookModels = webHookDao.getModelByIdentityAndWalletId(destinationIdentityReference.getIdentityId(), null, EventType.DESTINATION_AUTHORIZED);
+        List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.DESTINATION_AUTHORIZED);
 
         StatusChange status = change.getStatus();
 
