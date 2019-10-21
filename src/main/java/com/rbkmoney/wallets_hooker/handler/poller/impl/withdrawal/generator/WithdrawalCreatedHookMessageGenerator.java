@@ -46,6 +46,7 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
             withdrawal.setId(withdrawalId);
             withdrawal.setWallet(event.getSource());
             withdrawal.setBody(initBody(event));
+            withdrawal.setExternalID(event.getExternalId());
             WithdrawalStarted withdrawalStarted = new WithdrawalStarted();
             withdrawalStarted.setWithdrawal(withdrawal);
             withdrawalStarted.setEventType(Event.EventTypeEnum.WITHDRAWALSTARTED);
