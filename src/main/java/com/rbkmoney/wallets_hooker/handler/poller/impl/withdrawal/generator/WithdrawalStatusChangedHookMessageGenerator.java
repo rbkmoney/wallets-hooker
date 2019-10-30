@@ -49,7 +49,7 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
 
-            log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}", withdrawalId, event.toString(), model.toString());
+            log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}, body={}", withdrawalId, event.toString(), model.toString(), message);
 
             return webhookMessage;
         } catch (Exception e) {
