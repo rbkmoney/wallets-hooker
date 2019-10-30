@@ -61,7 +61,7 @@ public class WithdrawalCreatedHookMessageGenerator implements HookMessageGenerat
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
             webhookMessage.setParentEventId(parentId);
 
-            log.info("Webhook message from withdrawal_event_created was generated, withdrawalId={}, model={}", withdrawalId, model.toString());
+            log.info("Webhook message from withdrawal_event_created was generated, withdrawalStarted={}, model={}, requestBody={}", withdrawalId, model.toString(), requestBody);
 
             return webhookMessage;
         } catch (JsonProcessingException e) {

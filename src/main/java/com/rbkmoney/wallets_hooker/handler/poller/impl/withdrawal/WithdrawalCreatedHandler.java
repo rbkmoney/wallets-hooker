@@ -52,7 +52,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
             String destinationId = withdrawal.getDestination();
             String walletId = withdrawal.getSource();
 
-            log.info("Start handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
+            log.info("Start handling withdrawal created, destinationId={}, withdrawal={}, walletId={}", destinationId, withdrawal, walletId);
 
             DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destinationId);
 
