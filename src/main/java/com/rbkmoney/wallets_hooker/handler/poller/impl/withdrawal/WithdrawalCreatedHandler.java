@@ -17,6 +17,7 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityRefere
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalCreatedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
@@ -76,8 +77,14 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
             webHookModels.stream()
                     .filter(webhook -> webhook.getWalletId() == null || webhook.getWalletId().equals(walletId))
-                    .map(webhook -> withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, withdrawalId,
-                            eventId, sinkEvent.getCreatedAt()))
+                    .map(webhook -> {
+                        GeneratorParam generatorParam = GeneratorParam.builder()
+                                .sourceId(withdrawalId)
+                                .eventId(eventId)
+                                .createdAt(sinkEvent.getCreatedAt())
+                                .build();
+                        return withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, generatorParam);
+                    })
                     .forEach(webHookMessageSenderService::send);
 
             log.info("Finish handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);
@@ -104,6 +111,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         withdrawalIdentityWalletReference.setWithdrawalId(withdrawalId);
         withdrawalIdentityWalletReference.setEventId(eventId);
         withdrawalIdentityWalletReference.setSequenceId((long) sequenceId);
+        withdrawalIdentityWalletReference.setExternalId(withdrawal.getExternalId());
 
         withdrawalReferenceDao.create(withdrawalIdentityWalletReference);
     }

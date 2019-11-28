@@ -43,7 +43,8 @@ public class DestinationReferenceDaoImpl extends AbstractDao implements Destinat
                         .select(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID,
                                 DESTINATION_IDENTITY_REFERENCE.IDENTITY_ID,
                                 DESTINATION_IDENTITY_REFERENCE.EVENT_ID,
-                                DESTINATION_IDENTITY_REFERENCE.SEQUENCE_ID)
+                                DESTINATION_IDENTITY_REFERENCE.SEQUENCE_ID,
+                                DESTINATION_IDENTITY_REFERENCE.EXTERNAL_ID)
                         .from(DESTINATION_IDENTITY_REFERENCE)
                         .where(DESTINATION_IDENTITY_REFERENCE.DESTINATION_ID.eq(id)),
                 listRecordRowMapper);

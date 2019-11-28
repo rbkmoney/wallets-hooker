@@ -2,7 +2,6 @@ package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
 import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.SinkEvent;
-import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
@@ -13,6 +12,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationStatusChangeHookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,8 +43,16 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
         List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.DESTINATION_AUTHORIZED);
 
         webHookModels.stream()
-                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, sinkEvent.getSource(),
-                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
+                .map(webhook -> {
+                    GeneratorParam generatorParam = GeneratorParam.builder()
+                            .sourceId(sinkEvent.getSource())
+                            .eventId(sinkEvent.getId())
+                            .parentId(Long.valueOf(destinationIdentityReference.getEventId()))
+                            .createdAt(sinkEvent.getCreatedAt())
+                            .externalId(destinationIdentityReference.getExternalId())
+                            .build();
+                    return destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, generatorParam);
+                })
                 .forEach(webHookMessageSenderService::send);
 
         log.info("Finish handling destination event status authorized change, destinationId={}", destinationId);

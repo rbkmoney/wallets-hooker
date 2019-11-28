@@ -14,6 +14,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -41,7 +42,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
 
     Signer signer = new AsymSigner();
 
-    WebHookMessageGeneratorServiceImpl<StatusChange> generatorService = new WebHookMessageGeneratorServiceImpl<>();
+    WebHookMessageGeneratorServiceImpl<StatusChange> generatorService = new WebHookMessageGeneratorServiceImpl<>(PARENT_ID);
     DestinationStatusChangeHookMessageGenerator destinationCreatedHookMessageGenerator =
             new DestinationStatusChangeHookMessageGenerator(
                     generatorService,
@@ -66,25 +67,39 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
         StatusChange statusChange = new StatusChange();
         statusChange.setChanged(Status.authorized(new Authorized()));
 
-        WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(statusChange,
-                model, SOURCE_ID, EVENT_ID, 0L, "2019-07-02T08:43:42Z");
+        GeneratorParam genParamAuth = GeneratorParam.builder()
+                .sourceId(SOURCE_ID)
+                .eventId(EVENT_ID)
+                .parentId(0L)
+                .createdAt("2019-07-02T08:43:42Z")
+                .externalId("externalId")
+                .build();
+        WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(statusChange, model, genParamAuth);
 
         byte[] requestBody = generate.getRequestBody();
         DestinationAuthorized destinationAuthorized = objectMapper.readValue(requestBody, DestinationAuthorized.class);
         Assert.assertEquals(SOURCE_ID, destinationAuthorized.getDestinationID());
+        Assert.assertEquals("externalId", destinationAuthorized.getExternalID());
 
         statusChange = new StatusChange();
         statusChange.setChanged(Status.unauthorized(new Unauthorized()));
 
+        GeneratorParam genParamUnauth = GeneratorParam.builder()
+                .sourceId(SOURCE_ID)
+                .eventId(EVENT_ID)
+                .parentId(666L)
+                .createdAt("2019-07-02T08:43:42Z")
+                .externalId("externalId")
+                .build();
         model.setEventTypes(Set.of(EventType.DESTINATION_AUTHORIZED, EventType.DESTINATION_CREATED));
-        generate = destinationCreatedHookMessageGenerator.generate(statusChange,
-                model, SOURCE_ID, EVENT_ID, 666L, "2019-07-02T08:43:42Z");
+        generate = destinationCreatedHookMessageGenerator.generate(statusChange, model, genParamUnauth);
 
 
         requestBody = generate.getRequestBody();
         DestinationUnauthorized destinationUnauthorized = objectMapper.readValue(requestBody, DestinationUnauthorized.class);
         Assert.assertEquals(SOURCE_ID, destinationUnauthorized.getDestinationID());
         Assert.assertEquals(666L, generate.getParentEventId());
+        Assert.assertEquals("externalId", destinationUnauthorized.getExternalID());
     }
 
     @Test(expected = GenerateMessageException.class)
@@ -99,9 +114,14 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
 
         StatusChange event = new StatusChange();
         WebHookModel model = new WebHookModel();
-        Mockito.when(mock.generate(event,
-                model, SOURCE_ID, EVENT_ID, PARENT_ID, T_08_43_42_Z)).thenThrow(new RuntimeException("test exception!"));
+        GeneratorParam genParam = GeneratorParam.builder()
+                .sourceId(SOURCE_ID)
+                .eventId(EVENT_ID)
+                .parentId(PARENT_ID)
+                .createdAt(T_08_43_42_Z)
+                .build();
+        Mockito.when(mock.generate(event, model, genParam)).thenThrow(new RuntimeException("test exception!"));
 
-        destinationCreatedHookMessageGenerator.generate(event, model, SOURCE_ID, EVENT_ID, PARENT_ID, T_08_43_42_Z);
+        destinationCreatedHookMessageGenerator.generate(event, model, genParam);
     }
 }

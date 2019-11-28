@@ -9,6 +9,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -37,12 +38,13 @@ public class DestinationCreatedHookMessageGeneratorTest {
 
     Signer signer = new AsymSigner();
 
-    WebHookMessageGeneratorServiceImpl<DestinationMessage> generatorService = new WebHookMessageGeneratorServiceImpl<>();
+    WebHookMessageGeneratorServiceImpl<DestinationMessage> generatorService = new WebHookMessageGeneratorServiceImpl<>(-1L);
     DestinationCreatedHookMessageGenerator destinationCreatedHookMessageGenerator =
             new DestinationCreatedHookMessageGenerator(
                     generatorService,
                     objectMapper,
-                    new AdditionalHeadersGenerator(signer));
+                    new AdditionalHeadersGenerator(signer),
+                    -1L);
 
     @Test
     public void generate() throws IOException {
@@ -71,8 +73,13 @@ public class DestinationCreatedHookMessageGeneratorTest {
 
         String createdAt = "2019-07-02T08:43:42Z";
 
-        WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(event,
-                model, SOURCE_ID, EVENT_ID, 0L, createdAt);
+        GeneratorParam genParam = GeneratorParam.builder()
+                .sourceId(SOURCE_ID)
+                .eventId(EVENT_ID)
+                .parentId(0L)
+                .createdAt(createdAt)
+                .build();
+        WebhookMessage generate = destinationCreatedHookMessageGenerator.generate(event, model, genParam);
 
         System.out.println(generate);
 

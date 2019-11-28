@@ -43,6 +43,7 @@ public class TestBeanFactory {
         Destination destination = new Destination();
         destination.setName("name");
         destination.setId(DESTINATION);
+        destination.setExternalId("externalId");
         Resource resource = new Resource();
         BankCard bankCard = new BankCard();
         bankCard.setBin("1234");

@@ -8,6 +8,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalStatusChangedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
@@ -40,8 +41,16 @@ public class WithdrawalChangeStatusHandler {
 
             webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(reference.getWalletId()))
-                    .map(webhook -> withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook,
-                            withdrawalId, sinkEvent.getId(), parentId, sinkEvent.getCreatedAt()))
+                    .map(webhook -> {
+                        GeneratorParam genParam = GeneratorParam.builder()
+                                .sourceId(withdrawalId)
+                                .eventId(sinkEvent.getId())
+                                .parentId(parentId)
+                                .createdAt(sinkEvent.getCreatedAt())
+                                .externalId(reference.getExternalId())
+                                .build();
+                        return withdrawalStatusChangedHookMessageGenerator.generate(change.getStatusChanged(), webhook, genParam);
+                    })
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
