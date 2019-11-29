@@ -78,9 +78,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
 
             webHookModels.stream()
                     .filter(webhook -> webhook.getWalletId() == null || webhook.getWalletId().equals(walletId))
-                    .map(webhook -> {
-                        return generateWithdrawalCreatedHookMsg(withdrawal, webhook, withdrawalId, eventId, sinkEvent.getCreatedAt(), withdrawal.getExternalId());
-                    })
+                    .map(webhook -> generateWithdrawalCreatedHookMsg(withdrawal, webhook, withdrawalId, eventId, sinkEvent.getCreatedAt(), withdrawal.getExternalId()))
                     .forEach(webHookMessageSenderService::send);
 
             log.info("Finish handling withdrawal created, destinationId={}, withdrawalId={}, walletId={}", destinationId, withdrawalId, walletId);

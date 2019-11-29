@@ -45,11 +45,9 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
         List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.DESTINATION_AUTHORIZED);
 
         webHookModels.stream()
-                .map(webhook -> {
-                    return generateDestinationChangeHookMsg(change.getStatus(), webhook, sinkEvent.getSource(),
-                            sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()),
-                            sinkEvent.getCreatedAt(), destinationIdentityReference.getExternalId());
-                })
+                .map(webhook -> generateDestinationChangeHookMsg(change.getStatus(), webhook, sinkEvent.getSource(),
+                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()),
+                        sinkEvent.getCreatedAt(), destinationIdentityReference.getExternalId()))
                 .forEach(webHookMessageSenderService::send);
 
         log.info("Finish handling destination event status authorized change, destinationId={}", destinationId);

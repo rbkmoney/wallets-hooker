@@ -43,10 +43,8 @@ public class WithdrawalChangeStatusHandler {
 
             webHookModels.stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(reference.getWalletId()))
-                    .map(webhook -> {
-                        return generateWithdrawalStatusChangeHookMsg(change.getStatusChanged(), webhook, withdrawalId, sinkEvent.getId(),
-                                parentId, sinkEvent.getCreatedAt(), reference.getExternalId());
-                    })
+                    .map(webhook -> generateWithdrawalStatusChangeHookMsg(change.getStatusChanged(), webhook, withdrawalId, sinkEvent.getId(),
+                            parentId, sinkEvent.getCreatedAt(), reference.getExternalId()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
             log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
