@@ -1,8 +1,6 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.rbkmoney.fistful.destination.Authorized;
 import com.rbkmoney.fistful.destination.Status;
 import com.rbkmoney.fistful.destination.StatusChange;
@@ -14,7 +12,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -67,7 +65,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
         StatusChange statusChange = new StatusChange();
         statusChange.setChanged(Status.authorized(new Authorized()));
 
-        GeneratorParam genParamAuth = GeneratorParam.builder()
+        MessageGenParams genParamAuth = MessageGenParams.builder()
                 .sourceId(SOURCE_ID)
                 .eventId(EVENT_ID)
                 .parentId(0L)
@@ -84,7 +82,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
         statusChange = new StatusChange();
         statusChange.setChanged(Status.unauthorized(new Unauthorized()));
 
-        GeneratorParam genParamUnauth = GeneratorParam.builder()
+        MessageGenParams genParamUnauth = MessageGenParams.builder()
                 .sourceId(SOURCE_ID)
                 .eventId(EVENT_ID)
                 .parentId(666L)
@@ -114,7 +112,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
 
         StatusChange event = new StatusChange();
         WebHookModel model = new WebHookModel();
-        GeneratorParam genParam = GeneratorParam.builder()
+        MessageGenParams genParam = MessageGenParams.builder()
                 .sourceId(SOURCE_ID)
                 .eventId(EVENT_ID)
                 .parentId(PARENT_ID)

@@ -11,7 +11,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -41,18 +41,18 @@ public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessage
     }
 
     @Override
-    protected WebhookMessage generateMessage(StatusChange event, WebHookModel model, GeneratorParam generatorParam) {
+    protected WebhookMessage generateMessage(StatusChange event, WebHookModel model, MessageGenParams messageGenParams) {
         try {
-            String message = initRequestBody(event.getStatus(), generatorParam.getSourceId(),
-                    generatorParam.getEventId(), generatorParam.getCreatedAt(), generatorParam.getExternalId());
+            String message = initRequestBody(event.getStatus(), messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
 
-            WebhookMessage webhookMessage = generatorService.generate(event, model, generatorParam);
-            webhookMessage.setParentEventId(initPatenId(model, generatorParam.getParentId()));
+            WebhookMessage webhookMessage = generatorService.generate(event, model, messageGenParams);
+            webhookMessage.setParentEventId(initPatenId(model, messageGenParams.getParentId()));
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
 
             log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}, body={}, externalId={}",
-                    generatorParam.getSourceId(), event.toString(), model.toString(), message, generatorParam.getExternalId());
+                    messageGenParams.getSourceId(), event.toString(), model.toString(), message, messageGenParams.getExternalId());
 
             return webhookMessage;
         } catch (Exception e) {

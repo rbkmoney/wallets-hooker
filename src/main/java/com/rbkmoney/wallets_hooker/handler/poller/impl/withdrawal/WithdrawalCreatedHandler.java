@@ -17,9 +17,10 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityRefere
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalCreatedHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,12 +79,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
             webHookModels.stream()
                     .filter(webhook -> webhook.getWalletId() == null || webhook.getWalletId().equals(walletId))
                     .map(webhook -> {
-                        GeneratorParam generatorParam = GeneratorParam.builder()
-                                .sourceId(withdrawalId)
-                                .eventId(eventId)
-                                .createdAt(sinkEvent.getCreatedAt())
-                                .build();
-                        return withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, generatorParam);
+                        return generateWithdrawalCreatedHookMsg(withdrawal, webhook, withdrawalId, eventId, sinkEvent.getCreatedAt(), withdrawal.getExternalId());
                     })
                     .forEach(webHookMessageSenderService::send);
 
@@ -114,6 +110,17 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
         withdrawalIdentityWalletReference.setExternalId(withdrawal.getExternalId());
 
         withdrawalReferenceDao.create(withdrawalIdentityWalletReference);
+    }
+
+    private WebhookMessage generateWithdrawalCreatedHookMsg(Withdrawal withdrawal, WebHookModel webhook,
+                                                            String withdrawalId, long eventId, String createdAt, String externalId) {
+        MessageGenParams msgGenParams = MessageGenParams.builder()
+                .sourceId(withdrawalId)
+                .eventId(eventId)
+                .createdAt(createdAt)
+                .externalId(externalId)
+                .build();
+        return withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, msgGenParams);
     }
 
     @Override

@@ -2,6 +2,7 @@ package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
 
 import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.SinkEvent;
+import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
@@ -12,8 +13,9 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationStatusChangeHookMessageGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -44,14 +46,9 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
 
         webHookModels.stream()
                 .map(webhook -> {
-                    GeneratorParam generatorParam = GeneratorParam.builder()
-                            .sourceId(sinkEvent.getSource())
-                            .eventId(sinkEvent.getId())
-                            .parentId(Long.valueOf(destinationIdentityReference.getEventId()))
-                            .createdAt(sinkEvent.getCreatedAt())
-                            .externalId(destinationIdentityReference.getExternalId())
-                            .build();
-                    return destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, generatorParam);
+                    return generateDestinationChangeHookMsg(change.getStatus(), webhook, sinkEvent.getSource(),
+                            sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()),
+                            sinkEvent.getCreatedAt(), destinationIdentityReference.getExternalId());
                 })
                 .forEach(webHookMessageSenderService::send);
 
@@ -61,6 +58,18 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
     @Override
     public Filter getFilter() {
         return filter;
+    }
+
+    private WebhookMessage generateDestinationChangeHookMsg(StatusChange status, WebHookModel webhook, String sourcedId,
+                                                            long eventId, Long parentId, String createdAt, String externalId) {
+        MessageGenParams messageGenParams = MessageGenParams.builder()
+                .sourceId(sourcedId)
+                .eventId(eventId)
+                .parentId(parentId)
+                .createdAt(createdAt)
+                .externalId(externalId)
+                .build();
+        return destinationStatusChangeHookMessageGenerator.generate(status, webhook, messageGenParams);
     }
 
 }

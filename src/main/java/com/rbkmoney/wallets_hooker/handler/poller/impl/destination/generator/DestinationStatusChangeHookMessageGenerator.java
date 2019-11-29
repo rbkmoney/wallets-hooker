@@ -10,7 +10,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -40,20 +40,20 @@ public class DestinationStatusChangeHookMessageGenerator extends BaseHookMessage
     }
 
     @Override
-    protected WebhookMessage generateMessage(StatusChange statusChange, WebHookModel model, GeneratorParam generatorParam) {
+    protected WebhookMessage generateMessage(StatusChange statusChange, WebHookModel model, MessageGenParams messageGenParams) {
         try {
-            String message = generateMessage(statusChange, generatorParam.getSourceId(),
-                    generatorParam.getEventId(), generatorParam.getCreatedAt(), generatorParam.getExternalId());
+            String message = generateMessage(statusChange, messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
 
             Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
 
-            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, generatorParam);
-            webhookMessage.setParentEventId(initParentId(model, generatorParam.getParentId()));
+            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, messageGenParams);
+            webhookMessage.setParentEventId(initParentId(model, messageGenParams.getParentId()));
             webhookMessage.setAdditionalHeaders(additionalHeaders);
             webhookMessage.setRequestBody(message.getBytes());
 
             log.info("Webhook message from destination_event_status_changed was generated, destinationId={}, statusChange={}, model={}",
-                    generatorParam.getSourceId(), statusChange.toString(), model.toString());
+                    messageGenParams.getSourceId(), statusChange.toString(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {

@@ -1,7 +1,7 @@
 package com.rbkmoney.wallets_hooker.service;
 
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,15 +15,15 @@ public class WebHookMessageGeneratorServiceImpl<T> extends BaseHookMessageGenera
     }
 
     @Override
-    protected WebhookMessage generateMessage(T event, WebHookModel model, GeneratorParam generatorParam) {
+    protected WebhookMessage generateMessage(T event, WebHookModel model, MessageGenParams messageGenParams) {
         WebhookMessage webhookMessage = new WebhookMessage();
         webhookMessage.setContentType(ContentType.APPLICATION_JSON.getMimeType());
-        webhookMessage.setSourceId(generatorParam.getSourceId());
-        webhookMessage.setEventId(generatorParam.getEventId());
+        webhookMessage.setSourceId(messageGenParams.getSourceId());
+        webhookMessage.setEventId(messageGenParams.getEventId());
         webhookMessage.setWebhookId(model.getId());
-        webhookMessage.setParentEventId(generatorParam.getParentId());
+        webhookMessage.setParentEventId(messageGenParams.getParentId());
         webhookMessage.setUrl(model.getUrl());
-        webhookMessage.setCreatedAt(generatorParam.getCreatedAt());
+        webhookMessage.setCreatedAt(messageGenParams.getCreatedAt());
         return webhookMessage;
     }
 }

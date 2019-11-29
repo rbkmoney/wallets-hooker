@@ -9,7 +9,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -20,8 +20,6 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.time.OffsetDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Set;
 
 public class DestinationCreatedHookMessageGeneratorTest {
@@ -73,7 +71,7 @@ public class DestinationCreatedHookMessageGeneratorTest {
 
         String createdAt = "2019-07-02T08:43:42Z";
 
-        GeneratorParam genParam = GeneratorParam.builder()
+        MessageGenParams genParam = MessageGenParams.builder()
                 .sourceId(SOURCE_ID)
                 .eventId(EVENT_ID)
                 .parentId(0L)

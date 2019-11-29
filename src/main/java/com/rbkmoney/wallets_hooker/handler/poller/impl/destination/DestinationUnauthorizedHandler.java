@@ -12,7 +12,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationStatusChangeHookMessageGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +44,14 @@ public class DestinationUnauthorizedHandler extends AbstractDestinationEventHand
 
         webHookModels.stream()
                 .map(webhook -> {
-                    GeneratorParam generatorParam = GeneratorParam.builder()
+                    MessageGenParams messageGenParams = MessageGenParams.builder()
                             .sourceId(sinkEvent.getSource())
                             .eventId(sinkEvent.getId())
                             .parentId(Long.valueOf(destinationIdentityReference.getEventId()))
                             .createdAt(sinkEvent.getCreatedAt())
                             .externalId(destinationIdentityReference.getExternalId())
                             .build();
-                    return destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, generatorParam);
+                    return destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, messageGenParams);
                 })
                 .forEach(webHookMessageSenderService::send);
 

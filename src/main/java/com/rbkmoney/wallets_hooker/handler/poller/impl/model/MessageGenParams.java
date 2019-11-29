@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class GeneratorParam {
+public class MessageGenParams {
 
     private String sourceId;
 

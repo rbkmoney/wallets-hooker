@@ -18,8 +18,9 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityRefere
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationCreatedHookMessageGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -61,12 +62,7 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
 
             webHookModels.stream()
                     .map(webhook -> {
-                        GeneratorParam generatorParam = GeneratorParam.builder()
-                                .sourceId(destinationId)
-                                .eventId(sinkEvent.getId())
-                                .createdAt(sinkEvent.getCreatedAt())
-                                .build();
-                        return destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, generatorParam);
+                        return generateDestinationCreateHookMsg(destinationMessage, webhook, destinationId, sinkEvent.getId(), sinkEvent.getCreatedAt());
                     })
                     .forEach(webHookMessageSenderService::send);
 
@@ -76,6 +72,16 @@ public class DestinationAccountChangeHandler extends AbstractDestinationEventHan
             log.error("Error when handle DestinationCreated change: {} e: ", change, e);
             throw new HandleEventException("Error when handle DestinationCreated change", e);
         }
+    }
+
+    private WebhookMessage generateDestinationCreateHookMsg(DestinationMessage destinationMessage, WebHookModel webhook,
+                                                            String sourceId, Long eventId, String createdAt) {
+        MessageGenParams messageGenParams = MessageGenParams.builder()
+                .sourceId(sourceId)
+                .eventId(eventId)
+                .createdAt(createdAt)
+                .build();
+        return destinationCreatedHookMessageGenerator.generate(destinationMessage, webhook, messageGenParams);
     }
 
     private void createDestinationReference(SinkEvent sinkEvent, String identityId, String externalID) {

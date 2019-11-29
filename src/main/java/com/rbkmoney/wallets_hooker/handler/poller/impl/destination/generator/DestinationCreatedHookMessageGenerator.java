@@ -8,7 +8,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.GeneratorParam;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
@@ -38,27 +38,27 @@ public class DestinationCreatedHookMessageGenerator extends BaseHookMessageGener
     }
 
     @Override
-    protected WebhookMessage generateMessage(DestinationMessage event, WebHookModel model, GeneratorParam generatorParam) {
+    protected WebhookMessage generateMessage(DestinationMessage event, WebHookModel model, MessageGenParams messageGenParams) {
         try {
             Destination value = objectMapper.readValue(event.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
 
             DestinationCreated destinationCreated = new DestinationCreated();
             destinationCreated.setDestination(value);
-            destinationCreated.setEventID(generatorParam.getEventId().toString());
+            destinationCreated.setEventID(messageGenParams.getEventId().toString());
             destinationCreated.setEventType(Event.EventTypeEnum.DESTINATIONCREATED);
-            OffsetDateTime parse = OffsetDateTime.parse(generatorParam.getCreatedAt(), DateTimeFormatter.ISO_DATE_TIME);
+            OffsetDateTime parse = OffsetDateTime.parse(messageGenParams.getCreatedAt(), DateTimeFormatter.ISO_DATE_TIME);
             destinationCreated.setOccuredAt(parse);
             destinationCreated.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
 
             String requestBody = objectMapper.writeValueAsString(destinationCreated);
 
-            WebhookMessage webhookMessage = generatorService.generate(event, model, generatorParam);
+            WebhookMessage webhookMessage = generatorService.generate(event, model, messageGenParams);
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
-            webhookMessage.setEventId(generatorParam.getEventId());
+            webhookMessage.setEventId(messageGenParams.getEventId());
 
-            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", generatorParam.getSourceId(), model.toString());
+            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", messageGenParams.getSourceId(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {
