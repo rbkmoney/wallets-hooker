@@ -13,7 +13,9 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator.DestinationStatusChangeHookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -43,8 +45,9 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
         List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(destinationIdentityReference.getIdentityId(), EventType.DESTINATION_AUTHORIZED);
 
         webHookModels.stream()
-                .map(webhook -> destinationStatusChangeHookMessageGenerator.generate(change.getStatus(), webhook, sinkEvent.getSource(),
-                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()), sinkEvent.getCreatedAt()))
+                .map(webhook -> generateDestinationChangeHookMsg(change.getStatus(), webhook, sinkEvent.getSource(),
+                        sinkEvent.getId(), Long.valueOf(destinationIdentityReference.getEventId()),
+                        sinkEvent.getCreatedAt(), destinationIdentityReference.getExternalId()))
                 .forEach(webHookMessageSenderService::send);
 
         log.info("Finish handling destination event status authorized change, destinationId={}", destinationId);
@@ -53,6 +56,18 @@ public class DestinationAuthorizedHandler extends AbstractDestinationEventHandle
     @Override
     public Filter getFilter() {
         return filter;
+    }
+
+    private WebhookMessage generateDestinationChangeHookMsg(StatusChange status, WebHookModel webhook, String sourcedId,
+                                                            long eventId, Long parentId, String createdAt, String externalId) {
+        MessageGenParams messageGenParams = MessageGenParams.builder()
+                .sourceId(sourcedId)
+                .eventId(eventId)
+                .parentId(parentId)
+                .createdAt(createdAt)
+                .externalId(externalId)
+                .build();
+        return destinationStatusChangeHookMessageGenerator.generate(status, webhook, messageGenParams);
     }
 
 }

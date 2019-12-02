@@ -32,6 +32,7 @@ public class DestinationReferenceDaoImplTest extends AbstractPostgresIntegration
         reference.setEventId("eventId");
         String destination = "destination";
         reference.setDestinationId(destination);
+        reference.setExternalId("externalId");
         destinationReferenceDao.create(reference);
 
         DestinationIdentityReference destinationIdentityReference = destinationReferenceDao.get(destination);

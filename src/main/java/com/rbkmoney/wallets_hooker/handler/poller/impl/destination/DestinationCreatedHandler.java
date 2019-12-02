@@ -34,7 +34,7 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
             String destinationId = sinkEvent.getSource();
             log.info("Start handling destination created, destinationId={}", destinationId);
 
-            Destination destination = destinationToDestinationMessageConverter.convert( change.getCreated());
+            Destination destination = destinationToDestinationMessageConverter.convert(change.getCreated());
             destination.setId(destinationId);
 
             DestinationMessage destinationMessage = new DestinationMessage();

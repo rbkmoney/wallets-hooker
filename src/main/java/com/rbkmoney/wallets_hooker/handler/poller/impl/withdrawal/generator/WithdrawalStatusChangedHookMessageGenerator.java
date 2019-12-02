@@ -11,10 +11,10 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -24,38 +24,42 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageGenerator<StatusChange> {
+public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessageGenerator<StatusChange> {
 
     private final WebHookMessageGeneratorServiceImpl<StatusChange> generatorService;
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
-    @Value("${parent.not.exist.id}")
-    private Long parentIsNotExistId;
-
-    @Override
-    public WebhookMessage generate(StatusChange event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
-        return generate(event, model, sourceId, eventId, parentIsNotExistId, createdAt);
+    public WithdrawalStatusChangedHookMessageGenerator(WebHookMessageGeneratorServiceImpl<StatusChange> generatorService,
+                                                       ObjectMapper objectMapper,
+                                                       AdditionalHeadersGenerator additionalHeadersGenerator,
+                                                       @Value("${parent.not.exist.id}") Long parentId) {
+        super(parentId);
+        this.generatorService = generatorService;
+        this.objectMapper = objectMapper;
+        this.additionalHeadersGenerator = additionalHeadersGenerator;
     }
 
     @Override
-    public WebhookMessage generate(StatusChange event, WebHookModel model, String withdrawalId, Long eventId, Long parentId, String createdAt) {
+    protected WebhookMessage generateMessage(StatusChange event, WebHookModel model, MessageGenParams messageGenParams) {
         try {
-            String message = initRequestBody(event.getStatus(), withdrawalId, eventId, createdAt);
+            String message = initRequestBody(event.getStatus(), messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
 
-            WebhookMessage webhookMessage = generatorService.generate(event, model, withdrawalId, eventId, parentId, createdAt);
-            webhookMessage.setParentEventId(initPatenId(model, parentId));
+            WebhookMessage webhookMessage = generatorService.generate(event, model, messageGenParams);
+            webhookMessage.setParentEventId(initPatenId(model, messageGenParams.getParentId()));
             webhookMessage.setRequestBody(message.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, message));
 
-            log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}, body={}", withdrawalId, event.toString(), model.toString(), message);
+            log.info("Webhook message from withdrawal_event_status_changed was generated, withdrawalId={}, statusChange={}, model={}, body={}, externalId={}",
+                    messageGenParams.getSourceId(), event.toString(), model.toString(), message, messageGenParams.getExternalId());
 
             return webhookMessage;
         } catch (Exception e) {
             log.error("Error when generate webhookMessage e: ", e);
             throw new GenerateMessageException("WithdrawalStatusChanged error when generate webhookMessage!", e);
         }
+
     }
 
     private Long initPatenId(WebHookModel model, Long parentId) {
@@ -63,13 +67,14 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             return parentId;
         }
 
-        return parentIsNotExistId;
+        return super.parentIsNotExistId;
     }
 
-    private String initRequestBody(Status status, String withdrawalId, Long eventId, String createdAt) throws JsonProcessingException {
+    private String initRequestBody(Status status, String withdrawalId, Long eventId, String createdAt, String externalId) throws JsonProcessingException {
         if (status.isSetFailed()) {
             WithdrawalFailed withdrawalFailed = new WithdrawalFailed()
-                    .withdrawalID(withdrawalId);
+                    .withdrawalID(withdrawalId)
+                    .externalID(externalId);
             withdrawalFailed.setEventType(Event.EventTypeEnum.WITHDRAWALFAILED);
             withdrawalFailed.setEventID(eventId.toString());
             withdrawalFailed.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
@@ -77,7 +82,8 @@ public class WithdrawalStatusChangedHookMessageGenerator implements HookMessageG
             return objectMapper.writeValueAsString(withdrawalFailed);
         } else if (status.isSetSucceeded()) {
             WithdrawalSucceeded withdrawalSucceeded = new WithdrawalSucceeded()
-                    .withdrawalID(withdrawalId);
+                    .withdrawalID(withdrawalId)
+                    .externalID(externalId);
             withdrawalSucceeded.setEventType(Event.EventTypeEnum.WITHDRAWALSUCCEEDED);
             withdrawalSucceeded.setEventID(eventId.toString());
             withdrawalSucceeded.setOccuredAt(OffsetDateTime.parse(createdAt));

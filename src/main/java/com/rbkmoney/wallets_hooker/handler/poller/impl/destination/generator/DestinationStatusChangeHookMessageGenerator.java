@@ -10,7 +10,8 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.extern.slf4j.Slf4j;
@@ -23,46 +24,43 @@ import java.util.Map;
 
 @Slf4j
 @Component
-public class DestinationStatusChangeHookMessageGenerator implements HookMessageGenerator<StatusChange> {
+public class DestinationStatusChangeHookMessageGenerator extends BaseHookMessageGenerator<StatusChange> {
 
     private final WebHookMessageGeneratorServiceImpl<StatusChange> generatorService;
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
-    private Long parentIsNotExistId;
 
     public DestinationStatusChangeHookMessageGenerator(WebHookMessageGeneratorServiceImpl<StatusChange> generatorService,
                                                        ObjectMapper objectMapper, AdditionalHeadersGenerator additionalHeadersGenerator,
-                                                       @Value("${parent.not.exist.id}") Long parentIsNotExistId) {
+                                                       @Value("${parent.not.exist.id}") Long parentId) {
+        super(parentId);
         this.generatorService = generatorService;
         this.objectMapper = objectMapper;
         this.additionalHeadersGenerator = additionalHeadersGenerator;
-        this.parentIsNotExistId = parentIsNotExistId;
     }
 
     @Override
-    public WebhookMessage generate(StatusChange event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
-        return generate(event, model, sourceId, eventId, parentIsNotExistId, createdAt);
-    }
-
-    @Override
-    public WebhookMessage generate(StatusChange statusChange, WebHookModel model, String destinationId, Long eventId, Long parentId, String createdAt) {
+    protected WebhookMessage generateMessage(StatusChange statusChange, WebHookModel model, MessageGenParams messageGenParams) {
         try {
-            String message = generateMessage(statusChange, destinationId, eventId, createdAt);
+            String message = generateMessage(statusChange, messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
 
             Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
 
-            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, destinationId, eventId, parentId, createdAt);
-            webhookMessage.setParentEventId(initParentId(model, parentId));
+            WebhookMessage webhookMessage = generatorService.generate(statusChange, model, messageGenParams);
+            webhookMessage.setParentEventId(initParentId(model, messageGenParams.getParentId()));
             webhookMessage.setAdditionalHeaders(additionalHeaders);
             webhookMessage.setRequestBody(message.getBytes());
 
-            log.info("Webhook message from destination_event_status_changed was generated, destinationId={}, statusChange={}, model={}", destinationId, statusChange.toString(), model.toString());
+            log.info("Webhook message from destination_event_status_changed was generated, destinationId={}, statusChange={}, model={}",
+                    messageGenParams.getSourceId(), statusChange.toString(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {
             log.error("Error when generate webhookMessage e: ", e);
             throw new GenerateMessageException("Error when generate webhookMessage", e);
         }
+
     }
 
     private Long initParentId(WebHookModel model, Long parentId) {
@@ -74,7 +72,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
     }
 
     private String generateMessage(StatusChange statusChange, String destinationId,
-                                   Long eventId, String createdAt) throws JsonProcessingException {
+                                   Long eventId, String createdAt, String externalId) throws JsonProcessingException {
 
         if (statusChange.getChanged().isSetAuthorized()) {
             DestinationAuthorized destination = new DestinationAuthorized();
@@ -83,6 +81,7 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
             destination.setEventType(Event.EventTypeEnum.DESTINATIONAUTHORIZED);
             destination.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
             destination.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
+            destination.setExternalID(externalId);
             return objectMapper.writeValueAsString(destination);
         } else if (statusChange.getChanged().isSetUnauthorized()) {
             DestinationUnauthorized destination = new DestinationUnauthorized();
@@ -91,10 +90,12 @@ public class DestinationStatusChangeHookMessageGenerator implements HookMessageG
             destination.setEventType(Event.EventTypeEnum.DESTINATIONUNAUTHORIZED);
             destination.setOccuredAt(OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME));
             destination.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
+            destination.setExternalID(externalId);
             return objectMapper.writeValueAsString(destination);
         } else {
             log.error("Unknown statusChange: {}", statusChange);
             throw new GenerateMessageException("Unknown statusChange!");
         }
     }
+
 }

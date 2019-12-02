@@ -8,10 +8,10 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
 import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.service.HookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -21,50 +21,50 @@ import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
-public class DestinationCreatedHookMessageGenerator implements HookMessageGenerator<DestinationMessage> {
+public class DestinationCreatedHookMessageGenerator extends BaseHookMessageGenerator<DestinationMessage> {
 
     private final WebHookMessageGeneratorServiceImpl<DestinationMessage> generatorService;
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
-    @Value("${parent.not.exist.id}")
-    private Long parentIsNotExistId;
-
-    @Override
-    public WebhookMessage generate(DestinationMessage event, WebHookModel model, String sourceId, Long eventId, String createdAt) {
-        return generate(event, model, sourceId, eventId, parentIsNotExistId, createdAt);
+    public DestinationCreatedHookMessageGenerator(WebHookMessageGeneratorServiceImpl<DestinationMessage> generatorService,
+                                                  ObjectMapper objectMapper,
+                                                  AdditionalHeadersGenerator additionalHeadersGenerator,
+                                                  @Value("${parent.not.exist.id}") Long parentId) {
+        super(parentId);
+        this.generatorService = generatorService;
+        this.objectMapper = objectMapper;
+        this.additionalHeadersGenerator = additionalHeadersGenerator;
     }
 
     @Override
-    public WebhookMessage generate(DestinationMessage destinationMessage, WebHookModel model, String destinationId,
-                                   Long eventId, Long parentId, String createdAt) {
+    protected WebhookMessage generateMessage(DestinationMessage event, WebHookModel model, MessageGenParams messageGenParams) {
         try {
-            Destination value = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
+            Destination value = objectMapper.readValue(event.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
 
             DestinationCreated destinationCreated = new DestinationCreated();
             destinationCreated.setDestination(value);
-            destinationCreated.setEventID(eventId.toString());
+            destinationCreated.setEventID(messageGenParams.getEventId().toString());
             destinationCreated.setEventType(Event.EventTypeEnum.DESTINATIONCREATED);
-            OffsetDateTime parse = OffsetDateTime.parse(createdAt, DateTimeFormatter.ISO_DATE_TIME);
+            OffsetDateTime parse = OffsetDateTime.parse(messageGenParams.getCreatedAt(), DateTimeFormatter.ISO_DATE_TIME);
             destinationCreated.setOccuredAt(parse);
             destinationCreated.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
 
             String requestBody = objectMapper.writeValueAsString(destinationCreated);
 
-            WebhookMessage webhookMessage = generatorService.generate(destinationMessage, model, destinationId, eventId, parentId, createdAt);
+            WebhookMessage webhookMessage = generatorService.generate(event, model, messageGenParams);
             webhookMessage.setRequestBody(requestBody.getBytes());
             webhookMessage.setAdditionalHeaders(additionalHeadersGenerator.generate(model, requestBody));
-            webhookMessage.setEventId(eventId);
+            webhookMessage.setEventId(messageGenParams.getEventId());
 
-            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", destinationId, model.toString());
+            log.info("Webhook message from destination_event_created was generated, destinationId={}, model={}", messageGenParams.getSourceId(), model.toString());
 
             return webhookMessage;
         } catch (Exception e) {
-            log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", destinationMessage, model.toString(), e);
+            log.error("DestinationCreatedHookMessageGenerator error when generate destinationMessage: {} model: {} e: ", event, model.toString(), e);
             throw new GenerateMessageException("DestinationCreatedHookMessageGenerator error when generate destinationMessage!", e);
         }
-    }
 
+    }
 }
