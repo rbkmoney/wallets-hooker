@@ -152,8 +152,7 @@ public class TestBeanFactory {
         payload.setSequence(1);
         ArrayList<com.rbkmoney.fistful.withdrawal.Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.withdrawal.Change change = new com.rbkmoney.fistful.withdrawal.Change();
-        change.setStatusChanged(new StatusChange()
-                .setStatus(Status.succeeded(new Succeeded())));
+        change.setStatusChanged(new StatusChange().setStatus(Status.succeeded(new Succeeded())));
         changes.add(change);
 
         payload.setChanges(changes);
