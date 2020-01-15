@@ -91,10 +91,11 @@ public class TestBeanFactory {
     public static com.rbkmoney.fistful.withdrawal.SinkEvent createWithdrawalEvent() {
         com.rbkmoney.fistful.withdrawal.Change withdrawalChange = new com.rbkmoney.fistful.withdrawal.Change();
         Withdrawal withdrawal = new Withdrawal();
-        withdrawal.setDestination(DESTINATION);
+        withdrawal.setDestinationId(DESTINATION);
         withdrawal.setExternalId("extId");
-        withdrawal.setSource(SOURCE_WALLET_ID);
+        withdrawal.setWalletId(SOURCE_WALLET_ID);
         withdrawal.setId(WITHDRAWAL_ID);
+
         Cash body = new Cash();
         body.setAmount(1000);
         CurrencyRef currency = new CurrencyRef();
