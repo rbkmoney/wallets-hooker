@@ -35,9 +35,15 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
         DestinationResource destinationResource;
         if (resource.isSetBankCard()) {
             BankCard bankCard = new BankCard();
-            bankCard.bin(resource.getBankCard().bin);
-            bankCard.cardNumberMask(resource.getBankCard().masked_pan);
-            bankCard.paymentSystem(BankCard.PaymentSystemEnum.fromValue(resource.getBankCard().payment_system.name()));
+            if (resource.getBankCard().isSetBin()) {
+                bankCard.bin(resource.getBankCard().bin);
+            }
+            if (resource.getBankCard().isSetMaskedPan()) {
+                bankCard.cardNumberMask(resource.getBankCard().masked_pan);
+            }
+            if (resource.getBankCard().isSetPaymentSystem()) {
+                bankCard.paymentSystem(BankCard.PaymentSystemEnum.fromValue(resource.getBankCard().payment_system.name()));
+            }
             destinationResource = bankCard;
         } else if (resource.isSetCryptoWallet()) {
             CryptoWallet cryptoWallet = new CryptoWallet();
