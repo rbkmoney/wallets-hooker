@@ -1,13 +1,9 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
 import com.rbkmoney.fistful.account.Account;
-import com.rbkmoney.fistful.base.BankCard;
-import com.rbkmoney.fistful.base.BankCardPaymentSystem;
-import com.rbkmoney.fistful.base.Cash;
-import com.rbkmoney.fistful.base.CurrencyRef;
+import com.rbkmoney.fistful.base.*;
 import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.Destination;
-import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.fistful.wallet.AccountChange;
 import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
@@ -50,7 +46,7 @@ public class TestBeanFactory {
         bankCard.setMaskedPan("421");
         bankCard.setPaymentSystem(BankCardPaymentSystem.mastercard);
         bankCard.setToken("token");
-        resource.setBankCard(bankCard);
+        resource.setBankCard(new ResourceBankCard(bankCard));
         destination.setResource(resource);
         change.setCreated(destination);
         changes.add(change);
@@ -91,10 +87,11 @@ public class TestBeanFactory {
     public static com.rbkmoney.fistful.withdrawal.SinkEvent createWithdrawalEvent() {
         com.rbkmoney.fistful.withdrawal.Change withdrawalChange = new com.rbkmoney.fistful.withdrawal.Change();
         Withdrawal withdrawal = new Withdrawal();
-        withdrawal.setDestination(DESTINATION);
+        withdrawal.setDestinationId(DESTINATION);
         withdrawal.setExternalId("extId");
-        withdrawal.setSource(SOURCE_WALLET_ID);
+        withdrawal.setWalletId(SOURCE_WALLET_ID);
         withdrawal.setId(WITHDRAWAL_ID);
+
         Cash body = new Cash();
         body.setAmount(1000);
         CurrencyRef currency = new CurrencyRef();
@@ -151,8 +148,7 @@ public class TestBeanFactory {
         payload.setSequence(1);
         ArrayList<com.rbkmoney.fistful.withdrawal.Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.withdrawal.Change change = new com.rbkmoney.fistful.withdrawal.Change();
-        change.setStatusChanged(new StatusChange()
-                .setStatus(Status.succeeded(new Succeeded())));
+        change.setStatusChanged(new StatusChange().setStatus(Status.succeeded(new Succeeded())));
         changes.add(change);
 
         payload.setChanges(changes);

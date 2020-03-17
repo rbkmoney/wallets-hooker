@@ -43,9 +43,9 @@ public class WithdrawalCreatedHookMessageGenerator extends BaseHookMessageGenera
     protected WebhookMessage generateMessage(Withdrawal event, WebHookModel model, MessageGenParams messageGenParams) {
         try {
             var withdrawal = new com.rbkmoney.swag.wallets.webhook.events.model.Withdrawal();
-            withdrawal.setDestination(event.getDestination());
+            withdrawal.setDestination(event.getDestinationId());
             withdrawal.setId(messageGenParams.getSourceId());
-            withdrawal.setWallet(event.getSource());
+            withdrawal.setWallet(event.getWalletId());
             withdrawal.setBody(initBody(event));
             withdrawal.setExternalID(event.getExternalId());
             WithdrawalStarted withdrawalStarted = new WithdrawalStarted();

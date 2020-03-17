@@ -51,8 +51,8 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
             long eventId = sinkEvent.getId();
             Withdrawal withdrawal = change.getCreated().getWithdrawal();
             String withdrawalId = sinkEvent.getSource();
-            String destinationId = withdrawal.getDestination();
-            String walletId = withdrawal.getSource();
+            String destinationId = withdrawal.getDestinationId();
+            String walletId = withdrawal.getWalletId();
 
             log.info("Start handling withdrawal created, destinationId={}, withdrawal={}, walletId={}", destinationId, withdrawal, walletId);
 
@@ -101,7 +101,7 @@ public class WithdrawalCreatedHandler extends AbstractWithdrawalEventHandler {
                                  int sequenceId, String eventId, String withdrawalId) {
         WithdrawalIdentityWalletReference withdrawalIdentityWalletReference = new WithdrawalIdentityWalletReference();
         withdrawalIdentityWalletReference.setIdentityId(destinationIdentityReference.getIdentityId());
-        withdrawalIdentityWalletReference.setWalletId(withdrawal.getSource());
+        withdrawalIdentityWalletReference.setWalletId(withdrawal.getWalletId());
         withdrawalIdentityWalletReference.setWithdrawalId(withdrawalId);
         withdrawalIdentityWalletReference.setEventId(eventId);
         withdrawalIdentityWalletReference.setSequenceId((long) sequenceId);
