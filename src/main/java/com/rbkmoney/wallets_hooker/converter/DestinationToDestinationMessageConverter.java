@@ -3,8 +3,10 @@ package com.rbkmoney.wallets_hooker.converter;
 import com.google.common.base.CaseFormat;
 import com.rbkmoney.fistful.account.Account;
 import com.rbkmoney.fistful.base.CryptoData;
+import com.rbkmoney.fistful.base.Resource;
+import com.rbkmoney.fistful.base.ResourceBankCard;
+import com.rbkmoney.fistful.base.ResourceCryptoWallet;
 import com.rbkmoney.fistful.destination.Destination;
-import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.swag.wallets.webhook.events.model.BankCard;
 import com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
@@ -44,17 +46,19 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
         switch (resource.getSetField()) {
             case BANK_CARD:
                 BankCard bankCard = new BankCard();
+                ResourceBankCard resourceBankCard = resource.getBankCard();
                 bankCard.setType(DestinationResource.TypeEnum.BANKCARD);
-                bankCard.bin(resource.getBankCard().bin);
-                bankCard.cardNumberMask(resource.getBankCard().masked_pan);
-                bankCard.paymentSystem(BankCard.PaymentSystemEnum.fromValue(resource.getBankCard().payment_system.name()));
+                bankCard.bin(resourceBankCard.getBankCard().bin);
+                bankCard.cardNumberMask(resourceBankCard.getBankCard().masked_pan);
+                bankCard.paymentSystem(BankCard.PaymentSystemEnum.fromValue(resourceBankCard.getBankCard().payment_system.name()));
                 return bankCard;
             case CRYPTO_WALLET:
                 CryptoWallet cryptoWallet = new CryptoWallet();
                 cryptoWallet.setType(DestinationResource.TypeEnum.CRYPTOWALLET);
-                cryptoWallet.setCryptoWalletId(resource.getCryptoWallet().id);
-                if (resource.getCryptoWallet().isSetData()) {
-                    CryptoData cryptoData = resource.getCryptoWallet().getData();
+                ResourceCryptoWallet resourceCryptoWallet = resource.getCryptoWallet();
+                cryptoWallet.setCryptoWalletId(resourceCryptoWallet.getCryptoWallet().id);
+                if (resourceCryptoWallet.getCryptoWallet().isSetData()) {
+                    CryptoData cryptoData = resourceCryptoWallet.getCryptoWallet().getData();
                     cryptoWallet.setCurrency(
                             CryptoWallet.CurrencyEnum.fromValue(
                                     CaseFormat.UPPER_UNDERSCORE.to(
