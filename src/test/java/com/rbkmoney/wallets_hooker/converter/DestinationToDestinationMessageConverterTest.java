@@ -3,7 +3,6 @@ package com.rbkmoney.wallets_hooker.converter;
 import com.rbkmoney.fistful.account.Account;
 import com.rbkmoney.fistful.base.*;
 import com.rbkmoney.fistful.destination.Destination;
-import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.fistful.msgpack.Value;
 import org.junit.Test;
 
@@ -25,12 +24,14 @@ public class DestinationToDestinationMessageConverterTest {
                                 .setCurrency(new CurrencyRef("RUB"))
                 )
                 .setResource(Resource.bank_card(
-                        new BankCard("token")
-                                .setBin("bin")
-                                .setMaskedPan("masked_pan")
-                                .setCardType(CardType.charge_card)
-                                .setBinDataId(Value.i(1))
-                                .setPaymentSystem(BankCardPaymentSystem.mastercard)
+                        new ResourceBankCard(
+                                new BankCard("token")
+                                        .setBin("bin")
+                                        .setMaskedPan("masked_pan")
+                                        .setCardType(CardType.charge_card)
+                                        .setBinDataId(Value.i(1))
+                                        .setPaymentSystem(BankCardPaymentSystem.mastercard)
+                        )
                 ));
         var swagDestination = converter.convert(destination);
         assertEquals(destination.getId(), swagDestination.getId());
@@ -54,8 +55,10 @@ public class DestinationToDestinationMessageConverterTest {
                                 .setCurrency(new CurrencyRef("RUB"))
                 )
                 .setResource(Resource.crypto_wallet(
-                        new CryptoWallet("crypto_wallet_id", CryptoCurrency.bitcoin_cash)
-                        .setData(CryptoData.bitcoin_cash(new CryptoDataBitcoinCash()))
+                        new ResourceCryptoWallet(
+                                new CryptoWallet("crypto_wallet_id", CryptoCurrency.bitcoin_cash)
+                                        .setData(CryptoData.bitcoin_cash(new CryptoDataBitcoinCash()))
+                        )
                 ));
         var swagDestination = converter.convert(destination);
         assertEquals(destination.getId(), swagDestination.getId());
