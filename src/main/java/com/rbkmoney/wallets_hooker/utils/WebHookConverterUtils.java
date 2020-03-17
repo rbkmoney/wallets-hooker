@@ -2,11 +2,14 @@ package com.rbkmoney.wallets_hooker.utils;
 
 import com.rbkmoney.fistful.webhooker.*;
 import com.rbkmoney.wallets_hooker.exception.UnknownEventTypeException;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class WebHookConverterUtils {
 
     public static EventFilter generateEventFilter(Set<com.rbkmoney.wallets_hooker.domain.enums.EventType> eventTypes) {

@@ -1,13 +1,9 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
 import com.rbkmoney.fistful.account.Account;
-import com.rbkmoney.fistful.base.BankCard;
-import com.rbkmoney.fistful.base.BankCardPaymentSystem;
-import com.rbkmoney.fistful.base.Cash;
-import com.rbkmoney.fistful.base.CurrencyRef;
+import com.rbkmoney.fistful.base.*;
 import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.Destination;
-import com.rbkmoney.fistful.destination.Resource;
 import com.rbkmoney.fistful.wallet.AccountChange;
 import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
@@ -50,7 +46,7 @@ public class TestBeanFactory {
         bankCard.setMaskedPan("421");
         bankCard.setPaymentSystem(BankCardPaymentSystem.mastercard);
         bankCard.setToken("token");
-        resource.setBankCard(bankCard);
+        resource.setBankCard(new ResourceBankCard(bankCard));
         destination.setResource(resource);
         change.setCreated(destination);
         changes.add(change);
