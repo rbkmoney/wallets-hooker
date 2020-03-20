@@ -16,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -50,7 +52,12 @@ public class DestinationToDestinationMessageConverter implements Converter<Desti
                 bankCard.setType(DestinationResource.TypeEnum.BANKCARD);
                 bankCard.bin(resourceBankCard.getBankCard().bin);
                 bankCard.cardNumberMask(resourceBankCard.getBankCard().masked_pan);
-                bankCard.paymentSystem(BankCard.PaymentSystemEnum.fromValue(resourceBankCard.getBankCard().payment_system.name()));
+                bankCard.paymentSystem(
+                        BankCard.PaymentSystemEnum.fromValue(
+                                Objects.toString(
+                                        resourceBankCard.getBankCard().payment_system, null)
+                        )
+                );
                 return bankCard;
             case CRYPTO_WALLET:
                 CryptoWallet cryptoWallet = new CryptoWallet();
