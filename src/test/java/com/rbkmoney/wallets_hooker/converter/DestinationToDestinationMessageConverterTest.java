@@ -15,14 +15,8 @@ public class DestinationToDestinationMessageConverterTest {
     @Test
     public void testConvertFromEventWithBankCardResource() {
         Destination destination = new Destination()
-                .setId("id")
                 .setName("name")
                 .setExternalId("external_id")
-                .setAccount(
-                        new Account()
-                                .setIdentity("identity")
-                                .setCurrency(new CurrencyRef("RUB"))
-                )
                 .setResource(Resource.bank_card(
                         new ResourceBankCard(
                                 new BankCard("token")
@@ -34,11 +28,8 @@ public class DestinationToDestinationMessageConverterTest {
                         )
                 ));
         var swagDestination = converter.convert(destination);
-        assertEquals(destination.getId(), swagDestination.getId());
         assertEquals(destination.getExternalId(), swagDestination.getExternalID());
         assertEquals(destination.getName(), swagDestination.getName());
-        assertEquals(destination.getAccount().getIdentity(), swagDestination.getIdentity());
-        assertEquals(destination.getAccount().getCurrency().getSymbolicCode(), swagDestination.getCurrency());
         var bankCard = (com.rbkmoney.swag.wallets.webhook.events.model.BankCard) swagDestination.getResource();
         assertNotNull(bankCard.getPaymentSystem());
     }
@@ -46,14 +37,8 @@ public class DestinationToDestinationMessageConverterTest {
     @Test
     public void testConvertFromEventWithCryptoWalletResource() {
         Destination destination = new Destination()
-                .setId("id")
                 .setName("name")
                 .setExternalId("external_id")
-                .setAccount(
-                        new Account()
-                                .setIdentity("identity")
-                                .setCurrency(new CurrencyRef("RUB"))
-                )
                 .setResource(Resource.crypto_wallet(
                         new ResourceCryptoWallet(
                                 new CryptoWallet("crypto_wallet_id", CryptoCurrency.bitcoin_cash)
@@ -61,11 +46,8 @@ public class DestinationToDestinationMessageConverterTest {
                         )
                 ));
         var swagDestination = converter.convert(destination);
-        assertEquals(destination.getId(), swagDestination.getId());
         assertEquals(destination.getExternalId(), swagDestination.getExternalID());
         assertEquals(destination.getName(), swagDestination.getName());
-        assertEquals(destination.getAccount().getIdentity(), swagDestination.getIdentity());
-        assertEquals(destination.getAccount().getCurrency().getSymbolicCode(), swagDestination.getCurrency());
         var cryptoWallet = (com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet) swagDestination.getResource();
         assertNotNull(cryptoWallet.getCurrency());
     }
@@ -73,14 +55,8 @@ public class DestinationToDestinationMessageConverterTest {
     @Test
     public void testConvertFromEventWithBankCardResourceAndPaymentSystemIsNull() {
         Destination destination = new Destination()
-                .setId("id")
                 .setName("name")
                 .setExternalId("external_id")
-                .setAccount(
-                        new Account()
-                                .setIdentity("identity")
-                                .setCurrency(new CurrencyRef("RUB"))
-                )
                 .setResource(Resource.bank_card(
                         new ResourceBankCard(
                                 new BankCard("token")
@@ -92,11 +68,8 @@ public class DestinationToDestinationMessageConverterTest {
                         )
                 ));
         var swagDestination = converter.convert(destination);
-        assertEquals(destination.getId(), swagDestination.getId());
         assertEquals(destination.getExternalId(), swagDestination.getExternalID());
         assertEquals(destination.getName(), swagDestination.getName());
-        assertEquals(destination.getAccount().getIdentity(), swagDestination.getIdentity());
-        assertEquals(destination.getAccount().getCurrency().getSymbolicCode(), swagDestination.getCurrency());
         var bankCard = (com.rbkmoney.swag.wallets.webhook.events.model.BankCard) swagDestination.getResource();
         assertNull(bankCard.getPaymentSystem());
     }

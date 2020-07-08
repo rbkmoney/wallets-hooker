@@ -33,12 +33,11 @@ public class TestBeanFactory {
     @NotNull
     public static com.rbkmoney.fistful.destination.SinkEvent createDestination() {
         com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
-        com.rbkmoney.fistful.destination.Event payload = new com.rbkmoney.fistful.destination.Event();
+        com.rbkmoney.fistful.destination.EventSinkPayload payload = new com.rbkmoney.fistful.destination.EventSinkPayload();
         ArrayList<Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
         Destination destination = new Destination();
         destination.setName("name");
-        destination.setId(DESTINATION);
         destination.setExternalId("externalId");
         Resource resource = new Resource();
         BankCard bankCard = new BankCard();
@@ -63,11 +62,9 @@ public class TestBeanFactory {
     @NotNull
     public static com.rbkmoney.fistful.destination.SinkEvent createDestinationAccount() {
         com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
-        com.rbkmoney.fistful.destination.Event payload = new com.rbkmoney.fistful.destination.Event();
+        com.rbkmoney.fistful.destination.EventSinkPayload payload = new com.rbkmoney.fistful.destination.EventSinkPayload();
         ArrayList<com.rbkmoney.fistful.destination.Change> changes = new ArrayList<>();
         com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
-        Destination destination = new Destination();
-        destination.setId(DESTINATION);
         com.rbkmoney.fistful.destination.AccountChange accountChange = new com.rbkmoney.fistful.destination.AccountChange();
         Account account = new Account();
         account.setIdentity(IDENTITY_ID);
