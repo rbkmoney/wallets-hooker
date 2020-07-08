@@ -3,6 +3,7 @@ package com.rbkmoney.wallets_hooker.handler.poller;
 import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.eventstock.client.EventHandler;
 import com.rbkmoney.fistful.destination.Event;
+import com.rbkmoney.fistful.destination.EventSinkPayload;
 import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.wallets_hooker.constant.EventTopic;
 import com.rbkmoney.wallets_hooker.dao.EventLogDao;
@@ -33,7 +34,7 @@ public class DestinationEventSinkHandler implements EventHandler<SinkEvent> {
         return EventAction.CONTINUE;
     }
 
-    private void handleEvents(SinkEvent sinkEvent, Event payload) {
+    private void handleEvents(SinkEvent sinkEvent, EventSinkPayload payload) {
         payload.getChanges().forEach(cc -> eventHandlers.forEach(ph -> {
             if (ph.accept(cc)) {
                 ph.handle(cc, sinkEvent);
