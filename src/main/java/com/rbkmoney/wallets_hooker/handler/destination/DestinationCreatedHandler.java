@@ -1,13 +1,13 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.destination;
+package com.rbkmoney.wallets_hooker.handler.destination;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.rbkmoney.fistful.destination.Change;
-import com.rbkmoney.fistful.destination.SinkEvent;
+import com.rbkmoney.fistful.destination.TimestampedChange;
 import com.rbkmoney.geck.filter.Filter;
 import com.rbkmoney.geck.filter.PathConditionFilter;
 import com.rbkmoney.geck.filter.condition.IsNullCondition;
 import com.rbkmoney.geck.filter.rule.PathConditionRule;
+import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.wallets_hooker.converter.DestinationToDestinationMessageConverter;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationMessageDaoImpl;
@@ -20,21 +20,24 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
+public class DestinationCreatedHandler implements DestinationEventHandler {
 
     private final DestinationMessageDaoImpl destinationMessageDao;
     private final DestinationToDestinationMessageConverter destinationToDestinationMessageConverter;
     private final ObjectMapper objectMapper;
 
-    private Filter filter = new PathConditionFilter(new PathConditionRule("created", new IsNullCondition().not()));
+    @SuppressWarnings("rawtypes")
+    private final Filter filter = new PathConditionFilter(new PathConditionRule(
+            "created",
+            new IsNullCondition().not()));
 
     @Override
-    public void handle(Change change, SinkEvent sinkEvent) {
+    public void handle(TimestampedChange change, MachineEvent event) {
         try {
-            String destinationId = sinkEvent.getSource();
-            log.info("Start handling destination created, destinationId={}", destinationId);
+            String destinationId = event.getSourceId();
+            log.info("Start handling DestinationCreatedChange: destinationId={}", destinationId);
 
-            Destination destination = destinationToDestinationMessageConverter.convert(change.getCreated());
+            Destination destination = destinationToDestinationMessageConverter.convert(change.getChange().getCreated());
             destination.setId(destinationId);
 
             DestinationMessage destinationMessage = new DestinationMessage();
@@ -43,16 +46,16 @@ public class DestinationCreatedHandler extends AbstractDestinationEventHandler {
 
             destinationMessageDao.create(destinationMessage);
 
-            log.info("Finish handling destination created, destinationId={}", destinationId);
+            log.info("Finish handling DestinationCreatedChange: destinationId={}", destinationId);
         } catch (JsonProcessingException e) {
-            log.error("Error when handle DestinationCreated change: {} e: ", change, e);
-            throw new HandleEventException("Error when handle DestinationCreated change", e);
+            log.error("Error while handling DestinationCreatedChange: {}", change, e);
+            throw new HandleEventException("Error while handling DestinationCreatedChange", e);
         }
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public Filter getFilter() {
         return filter;
     }
-
 }

@@ -19,7 +19,6 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
 
-    private final EventPublisher destinationEventPublisher;
     private final EventPublisher withdrawalEventPublisher;
     private final EventPublisher walletEventPublisher;
 
@@ -27,9 +26,6 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
 
     @Value("${withdrawal.polling.lastEventId}")
     private Long withdrawalLastEventId;
-
-    @Value("${destination.polling.lastEventId}")
-    private Long destinationLastEventId;
 
     @Value("${wallet.polling.lastEventId}")
     private Long walletLastEventId;
@@ -40,8 +36,6 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (pollingEnabled) {
-            destinationEventPublisher.subscribe(buildSubscriberConfig(
-                    Optional.ofNullable(eventLogDao.getLastEventId(EventTopic.DESTINATION, destinationLastEventId))));
             walletEventPublisher.subscribe(buildSubscriberConfig(
                     Optional.ofNullable(eventLogDao.getLastEventId(EventTopic.WALLET, walletLastEventId))));
             withdrawalEventPublisher.subscribe(buildSubscriberConfig(

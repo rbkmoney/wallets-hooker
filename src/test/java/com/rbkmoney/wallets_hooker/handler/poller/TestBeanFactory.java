@@ -2,8 +2,8 @@ package com.rbkmoney.wallets_hooker.handler.poller;
 
 import com.rbkmoney.fistful.account.Account;
 import com.rbkmoney.fistful.base.*;
-import com.rbkmoney.fistful.destination.Change;
 import com.rbkmoney.fistful.destination.Destination;
+import com.rbkmoney.fistful.destination.TimestampedChange;
 import com.rbkmoney.fistful.wallet.AccountChange;
 import com.rbkmoney.fistful.wallet.Event;
 import com.rbkmoney.fistful.wallet.SinkEvent;
@@ -13,12 +13,15 @@ import com.rbkmoney.fistful.withdrawal.StatusChange;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
 import com.rbkmoney.fistful.withdrawal.status.Status;
 import com.rbkmoney.fistful.withdrawal.status.Succeeded;
+import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
+import com.rbkmoney.machinegun.eventsink.MachineEvent;
+import com.rbkmoney.machinegun.msgpack.Value;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
+import org.apache.thrift.TBase;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 
@@ -30,11 +33,7 @@ public class TestBeanFactory {
     public static final String WITHDRAWAL_ID = "withdrawalId";
     public static final long WALLET_ID = 21L;
 
-    @NotNull
-    public static com.rbkmoney.fistful.destination.SinkEvent createDestination() {
-        com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
-        com.rbkmoney.fistful.destination.EventSinkPayload payload = new com.rbkmoney.fistful.destination.EventSinkPayload();
-        ArrayList<Change> changes = new ArrayList<>();
+    public static MachineEvent createDestination() {
         com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
         Destination destination = new Destination();
         destination.setName("name");
@@ -48,36 +47,37 @@ public class TestBeanFactory {
         resource.setBankCard(new ResourceBankCard(bankCard));
         destination.setResource(resource);
         change.setCreated(destination);
-        changes.add(change);
-        payload.setChanges(changes);
-        payload.setSequence(1);
-        payload.setOccuredAt(LocalDateTime.now().toString());
-        sinkEvent.setPayload(payload);
-        sinkEvent.setSource(DESTINATION);
-        sinkEvent.setId(1L);
-        sinkEvent.setCreatedAt(Instant.now().toString());
-        return sinkEvent;
+
+        TimestampedChange statusChanged = new TimestampedChange()
+                .setOccuredAt("2016-03-22T06:12:27Z")
+                .setChange(change);
+
+        return machineEvent(
+                DESTINATION,
+                1L,
+                new ThriftSerializer<>(),
+                statusChanged);
     }
 
-    @NotNull
-    public static com.rbkmoney.fistful.destination.SinkEvent createDestinationAccount() {
-        com.rbkmoney.fistful.destination.SinkEvent sinkEvent = new com.rbkmoney.fistful.destination.SinkEvent();
-        com.rbkmoney.fistful.destination.EventSinkPayload payload = new com.rbkmoney.fistful.destination.EventSinkPayload();
-        ArrayList<com.rbkmoney.fistful.destination.Change> changes = new ArrayList<>();
+    public static MachineEvent createDestinationAccount() {
         com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
         com.rbkmoney.fistful.destination.AccountChange accountChange = new com.rbkmoney.fistful.destination.AccountChange();
         Account account = new Account();
+        account.setId("account");
+        account.setCurrency(new CurrencyRef().setSymbolicCode("RUB"));
         account.setIdentity(IDENTITY_ID);
         accountChange.setCreated(account);
         change.setAccount(accountChange);
-        changes.add(change);
-        payload.setChanges(changes);
-        payload.setSequence(1);
-        sinkEvent.setPayload(payload);
-        sinkEvent.setSource(DESTINATION);
-        sinkEvent.setId(2L);
-        sinkEvent.setCreatedAt(Instant.now().toString());
-        return sinkEvent;
+
+        TimestampedChange statusChanged = new TimestampedChange()
+                .setOccuredAt("2016-03-22T06:12:27Z")
+                .setChange(change);
+
+        return machineEvent(
+                DESTINATION,
+                2L,
+                new ThriftSerializer<>(),
+                statusChanged);
     }
 
     @NotNull
@@ -166,5 +166,18 @@ public class TestBeanFactory {
                 .walletId(TestBeanFactory.SOURCE_WALLET_ID)
                 .eventTypes(eventTypes)
                 .build();
+    }
+
+    private static <T extends TBase> MachineEvent machineEvent(
+            String sourceId,
+            Long eventId,
+            ThriftSerializer<T> depositChangeSerializer,
+            T change) {
+        return new MachineEvent()
+                .setEventId(eventId)
+                .setSourceId(sourceId)
+                .setSourceNs("source_ns")
+                .setCreatedAt("2016-03-22T06:12:27Z")
+                .setData(Value.bin(depositChangeSerializer.serialize("", change)));
     }
 }

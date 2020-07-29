@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.destination.generator;
+package com.rbkmoney.wallets_hooker.handler.destination.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
