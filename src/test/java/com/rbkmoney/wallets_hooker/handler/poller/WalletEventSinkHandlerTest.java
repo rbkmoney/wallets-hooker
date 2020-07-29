@@ -9,11 +9,10 @@ import com.rbkmoney.wallets_hooker.dao.EventLogDao;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -21,7 +20,12 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -31,18 +35,22 @@ import static org.mockito.ArgumentMatchers.any;
 public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
-    WalletEventSinkHandler walletEventSinkHandler;
+    private WalletEventSinkHandler walletEventSinkHandler;
+
     @Autowired
-    WithdrawalEventSinkHandler withdrawalEventSinkHandler;
+    private WithdrawalEventSinkHandler withdrawalEventSinkHandler;
+
     @Autowired
-    DestinationEventSinkHandler destinationEventSinkHandler;
+    private DestinationEventService destinationEventService;
+
     @Autowired
-    WebHookDao webHookDao;
+    private WebHookDao webHookDao;
+
     @Autowired
-    EventLogDao eventLogDao;
+    private EventLogDao eventLogDao;
 
     @MockBean
-    WebHookMessageSenderService webHookMessageSenderService;
+    private WebHookMessageSenderService webHookMessageSenderService;
 
     @Test
     public void handle() {
@@ -50,36 +58,32 @@ public class WalletEventSinkHandlerTest extends AbstractPostgresIntegrationTest 
 
         webHookDao.create(webhook);
 
-        EventAction action = destinationEventSinkHandler.handle(TestBeanFactory.createDestination(), "test");
-        Assert.assertEquals(action, EventAction.CONTINUE);
+        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
+        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
 
-        action = destinationEventSinkHandler.handle(TestBeanFactory.createDestinationAccount(), "test");
-        Assert.assertEquals(action, EventAction.CONTINUE);
-
-        action = walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), "test");
-        Assert.assertEquals(action, EventAction.CONTINUE);
+        EventAction action = walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), "test");
+        assertEquals(action, EventAction.CONTINUE);
 
         action = withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalEvent(), "test");
-        Assert.assertEquals(action, EventAction.CONTINUE);
+        assertEquals(action, EventAction.CONTINUE);
 
-        Mockito.verify(webHookMessageSenderService, Mockito.times(1))
+        verify(webHookMessageSenderService, times(1))
                 .send(any());
 
         SinkEvent sinkEvent = TestBeanFactory.createWithdrawalSucceeded();
 
         action = withdrawalEventSinkHandler.handle(sinkEvent, "test");
-        Assert.assertEquals(action, EventAction.CONTINUE);
-        Mockito.verify(webHookMessageSenderService, Mockito.times(2))
+        assertEquals(action, EventAction.CONTINUE);
+        verify(webHookMessageSenderService, times(2))
                 .send(any());
 
         Long lastEventId = eventLogDao.getLastEventId(EventTopic.DESTINATION, 0L);
-        Assert.assertEquals(2L, lastEventId.longValue());
+        assertEquals(2L, lastEventId.longValue());
 
         lastEventId = eventLogDao.getLastEventId(EventTopic.WALLET, 0L);
-        Assert.assertEquals(TestBeanFactory.WALLET_ID, lastEventId.longValue());
+        assertEquals(TestBeanFactory.WALLET_ID, lastEventId.longValue());
 
         lastEventId = eventLogDao.getLastEventId(EventTopic.WITHDRAWAL, 0L);
-        Assert.assertEquals(67L, lastEventId.longValue());
+        assertEquals(67L, lastEventId.longValue());
     }
-
 }

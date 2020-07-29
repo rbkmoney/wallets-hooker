@@ -1,21 +1,19 @@
 package com.rbkmoney.wallets_hooker.kafka;
 
-import com.rbkmoney.fistful.destination.SinkEvent;
 import com.rbkmoney.fistful.webhooker.*;
 import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
+import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
-import com.rbkmoney.wallets_hooker.handler.poller.DestinationEventSinkHandler;
 import com.rbkmoney.wallets_hooker.handler.poller.TestBeanFactory;
 import com.rbkmoney.wallets_hooker.handler.poller.WalletEventSinkHandler;
 import com.rbkmoney.wallets_hooker.handler.poller.WithdrawalEventSinkHandler;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
+import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.thrift.TException;
-import org.jetbrains.annotations.NotNull;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,21 +24,20 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = HookerApplication.class)
 @TestPropertySource(properties = "merchant.callback.timeout=1")
 public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
 
-
-    public static final String URL = "http://localhost:8089";
-    public static final String APPLICATION_JSON = "application/json";
-    public static final String TEST = "/test";
-    public static final String URL_2 = TEST + "/qwe";
-    public static final String KEY = "key";
+    private static final String TEST = "/test";
+    private static final String URL_2 = TEST + "/qwe";
+    private static final String KEY = "key";
 
     @Value("${kafka.topic.hook.name}")
     private String topicName;
@@ -52,7 +49,7 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
     private WebHookMessageSenderService webHookMessageSenderService;
 
     @Autowired
-    private DestinationEventSinkHandler destinationEventSinkHandler;
+    private DestinationEventService destinationEventService;
 
     @Autowired
     private WalletEventSinkHandler walletEventSinkHandler;
@@ -73,20 +70,19 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
         ThriftSerializer<Webhook> webhookThriftSerializer = new ThriftSerializer<>();
 
         byte[] serialize = webhookThriftSerializer.serialize("t", webhook);
-        Assert.assertTrue(serialize.length > 0);
-
-        Assert.assertEquals(TEST, webhook.getUrl());
+        assertTrue(serialize.length > 0);
+        assertEquals(TEST, webhook.getUrl());
 
         webhookParams.setUrl(URL_2);
         requestHandler.create(webhookParams);
         List<Webhook> list = requestHandler.getList(webhookParams.getIdentityId());
-        Assert.assertEquals(2L, list.size());
+        assertEquals(2L, list.size());
 
-        destinationEventSinkHandler.handle(TestBeanFactory.createDestination(), KEY);
-        destinationEventSinkHandler.handle(TestBeanFactory.createDestinationAccount(), KEY);
-        SinkEvent destinationAccount = TestBeanFactory.createDestinationAccount();
-        destinationAccount.setSource(TestBeanFactory.DESTINATION + "_not");
-        destinationEventSinkHandler.handle(destinationAccount, KEY);
+        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
+        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
+        MachineEvent destinationAccount = TestBeanFactory.createDestinationAccount();
+        destinationAccount.setSourceId(TestBeanFactory.DESTINATION + "_not");
+        destinationEventService.handleEvents(List.of(destinationAccount));
 
         walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), KEY);
 
@@ -97,7 +93,7 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
                 .setIdentityId(TestBeanFactory.IDENTITY_ID)
                 .setWalletId(TestBeanFactory.SOURCE_WALLET_ID)
                 .setUrl(TEST);
-        webhook = requestHandler.create(webhookParams);
+        requestHandler.create(webhookParams);
 
         withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalEvent(), KEY);
         withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalSucceeded(), KEY);
@@ -107,31 +103,16 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
         consumer.subscribe(List.of(topicName));
         ConsumerRecords<String, WebhookMessage> poll = consumer.poll(Duration.ofMillis(5000));
         Iterable<ConsumerRecord<String, WebhookMessage>> records = poll.records(topicName);
-        records.forEach(consumerRecord -> System.out.println(consumerRecord));
+        records.forEach(System.out::println);
 
-        Assert.assertEquals(4L, poll.count());
-
+        assertEquals(4L, poll.count());
 
         ArrayList<WebhookMessage> webhookMessages = new ArrayList<>();
         records.forEach(consumerRecord -> webhookMessages.add(consumerRecord.value()));
 
-        Assert.assertEquals(TestBeanFactory.DESTINATION, webhookMessages.get(0).source_id);
-        Assert.assertEquals(TestBeanFactory.DESTINATION, webhookMessages.get(1).source_id);
-        Assert.assertEquals(TestBeanFactory.WITHDRAWAL_ID, webhookMessages.get(2).source_id);
-        Assert.assertEquals(TestBeanFactory.WITHDRAWAL_ID, webhookMessages.get(3).source_id);
-    }
-
-    @NotNull
-    private WebhookMessage createWebhook(String sourceId, String createdAt, long eventId) {
-        WebhookMessage webhook = new WebhookMessage();
-        webhook.setSourceId(sourceId);
-        webhook.setCreatedAt(createdAt);
-        webhook.setUrl(URL);
-        webhook.setContentType(APPLICATION_JSON);
-        webhook.setRequestBody("\\{\\}".getBytes());
-        webhook.setEventId(eventId);
-        webhook.setAdditionalHeaders(new HashMap<>());
-        webhook.setParentEventId(-1);
-        return webhook;
+        assertEquals(TestBeanFactory.DESTINATION, webhookMessages.get(0).source_id);
+        assertEquals(TestBeanFactory.DESTINATION, webhookMessages.get(1).source_id);
+        assertEquals(TestBeanFactory.WITHDRAWAL_ID, webhookMessages.get(2).source_id);
+        assertEquals(TestBeanFactory.WITHDRAWAL_ID, webhookMessages.get(3).source_id);
     }
 }

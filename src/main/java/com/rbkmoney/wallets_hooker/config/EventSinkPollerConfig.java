@@ -48,23 +48,4 @@ public class EventSinkPollerConfig {
                 .withPollDelay(pollDelay)
                 .build();
     }
-
-    @Bean
-    public EventPublisher destinationEventPublisher(
-            DestinationEventSinkHandler destinationEventSinkHandler,
-            @Value("${destination.polling.url}") Resource resource,
-            @Value("${destination.polling.delay}") int pollDelay,
-            @Value("${destination.polling.retryDelay}") int retryDelay,
-            @Value("${destination.polling.maxPoolSize}") int maxPoolSize
-    ) throws IOException {
-        return new FistfulPollingEventPublisherBuilder()
-                .withDestinationServiceAdapter()
-                .withURI(resource.getURI())
-                .withEventHandler(destinationEventSinkHandler)
-                .withMaxPoolSize(maxPoolSize)
-                .withEventRetryDelay(retryDelay)
-                .withPollDelay(pollDelay)
-                .build();
-    }
-
 }

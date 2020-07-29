@@ -46,9 +46,6 @@ kafka:
   max-poll-records: 100
   max-poll-interval-ms: 60000
   max-session-timeout-ms: 60000
-  topic:
-    hook:
-      name: "hook"
   ssl:
     enabled: false
     key-store-type: changeit
@@ -57,16 +54,26 @@ kafka:
     trust-store-type: changeit
     trust-store-location: changeit
     trust-store-password: changeit
+  topic:
+    hook:
+      name: hook
+    wallet:
+      name: wallet
+      listener:
+        enabled: false
+    withdrawal:
+      name: withdrawal
+      listener:
+        enabled:
+          false
+    destination:
+      name: destination
+      listener:
+        enabled:
+          false
 
 wallet.polling:
   url: http://localhost:8022/v1/eventsink/wallet
-  maxPoolSize: 1
-  delay: 5000
-  retryDelay: 5000
-  lastEventId: 0
-
-destination.polling:
-  url: http://localhost:8022/v1/eventsink/destination
   maxPoolSize: 1
   delay: 5000
   retryDelay: 5000

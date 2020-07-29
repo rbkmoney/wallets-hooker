@@ -1,9 +1,11 @@
-package com.rbkmoney.wallets_hooker.service;
+package com.rbkmoney.wallets_hooker.service.kafka;
 
-import com.rbkmoney.fistful.wallet.TimestampedChange;
+import com.rbkmoney.fistful.destination.TimestampedChange;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.sink.common.parser.impl.MachineEventParser;
-import com.rbkmoney.wallets_hooker.handler.wallet.WalletEventHandler;
+import com.rbkmoney.wallets_hooker.constant.EventTopic;
+import com.rbkmoney.wallets_hooker.dao.EventLogDao;
+import com.rbkmoney.wallets_hooker.handler.destination.DestinationEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -15,10 +17,11 @@ import java.util.List;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class WalletEventService {
+public class DestinationEventService {
 
-    private final List<WalletEventHandler> walletEventHandlers;
+    private final List<DestinationEventHandler> destinationEventHandlers;
     private final MachineEventParser<TimestampedChange> parser;
+    private final EventLogDao eventLogDao;
 
     @Transactional(propagation = Propagation.REQUIRED)
     public void handleEvents(List<MachineEvent> machineEvents) {
@@ -29,9 +32,11 @@ public class WalletEventService {
         TimestampedChange change = parser.parse(machineEvent);
 
         if (change.isSetChange()) {
-            walletEventHandlers.stream()
+            destinationEventHandlers.stream()
                     .filter(handler -> handler.accept(change))
                     .forEach(handler -> handler.handle(change, machineEvent));
         }
+
+        eventLogDao.create(machineEvent.getEventId(), EventTopic.DESTINATION);
     }
 }
