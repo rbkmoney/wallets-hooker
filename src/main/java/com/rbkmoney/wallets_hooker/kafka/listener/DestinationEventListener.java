@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.kafka.listener;
 
 import com.rbkmoney.machinegun.eventsink.SinkEvent;
+import com.rbkmoney.wallets_hooker.service.DestinationEventService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
