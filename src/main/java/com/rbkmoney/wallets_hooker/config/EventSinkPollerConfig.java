@@ -14,24 +14,6 @@ import java.io.IOException;
 public class EventSinkPollerConfig {
 
     @Bean
-    public EventPublisher walletEventPublisher(
-            WalletEventSinkHandler walletEventSinkHandler,
-            @Value("${wallet.polling.url}") Resource resource,
-            @Value("${wallet.polling.delay}") int pollDelay,
-            @Value("${wallet.polling.retryDelay}") int retryDelay,
-            @Value("${wallet.polling.maxPoolSize}") int maxPoolSize
-    ) throws IOException {
-        return new FistfulPollingEventPublisherBuilder()
-                .withWalletServiceAdapter()
-                .withURI(resource.getURI())
-                .withEventHandler(walletEventSinkHandler)
-                .withMaxPoolSize(maxPoolSize)
-                .withEventRetryDelay(retryDelay)
-                .withPollDelay(pollDelay)
-                .build();
-    }
-
-    @Bean
     public EventPublisher withdrawalEventPublisher(
             WithdrawalEventSinkHandler withdrawalEventSinkHandler,
             @Value("${withdrawal.polling.url}") Resource resource,
