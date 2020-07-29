@@ -40,6 +40,7 @@
         <kafka.clients.version>2.5.0</kafka.clients.version>
         <swag-wallets-webhook-events.version>1.9-3fc881e</swag-wallets-webhook-events.version>
         <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
+        <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
     </properties>
 
     <dependencies>
@@ -174,6 +175,11 @@
             <groupId>com.rbkmoney</groupId>
             <artifactId>custom-actuator-endpoints</artifactId>
             <version>0.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
+            <artifactId>machinegun-proto</artifactId>
+            <version>${machinegun-proto.version}</version>
         </dependency>
 
         <!--Test libs-->

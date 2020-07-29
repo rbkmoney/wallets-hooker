@@ -15,7 +15,7 @@ public class WebHookMessageSenderServiceImpl implements WebHookMessageSenderServ
 
     private final KafkaTemplate<String, WebhookMessage> kafkaTemplate;
 
-    @Value("${kafka.topic.hook}")
+    @Value("${kafka.topic.hook.name}")
     private String topicName;
 
     public void send(WebhookMessage webhookMessage) {
