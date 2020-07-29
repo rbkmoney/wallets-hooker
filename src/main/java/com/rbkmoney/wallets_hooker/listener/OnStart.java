@@ -20,15 +20,11 @@ import java.util.Optional;
 public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
 
     private final EventPublisher withdrawalEventPublisher;
-    private final EventPublisher walletEventPublisher;
 
     private final EventLogDao eventLogDao;
 
     @Value("${withdrawal.polling.lastEventId}")
     private Long withdrawalLastEventId;
-
-    @Value("${wallet.polling.lastEventId}")
-    private Long walletLastEventId;
 
     @Value("${fistful.pollingEnabled}")
     private boolean pollingEnabled;
@@ -36,8 +32,6 @@ public class OnStart implements ApplicationListener<ApplicationReadyEvent> {
     @Override
     public void onApplicationEvent(ApplicationReadyEvent event) {
         if (pollingEnabled) {
-            walletEventPublisher.subscribe(buildSubscriberConfig(
-                    Optional.ofNullable(eventLogDao.getLastEventId(EventTopic.WALLET, walletLastEventId))));
             withdrawalEventPublisher.subscribe(buildSubscriberConfig(
                     Optional.ofNullable(eventLogDao.getLastEventId(EventTopic.WITHDRAWAL, withdrawalLastEventId))));
         }
