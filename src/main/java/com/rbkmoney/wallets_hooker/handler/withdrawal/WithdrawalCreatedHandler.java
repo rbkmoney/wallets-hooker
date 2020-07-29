@@ -2,10 +2,6 @@ package com.rbkmoney.wallets_hooker.handler.withdrawal;
 
 import com.rbkmoney.fistful.withdrawal.TimestampedChange;
 import com.rbkmoney.fistful.withdrawal.Withdrawal;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationReferenceDao;
 import com.rbkmoney.wallets_hooker.dao.wallet.WalletReferenceDao;
@@ -43,10 +39,10 @@ public class WithdrawalCreatedHandler implements WithdrawalEventHandler {
     private final WithdrawalCreatedHookMessageGenerator withdrawalCreatedHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "created",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetCreated();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -148,11 +144,5 @@ public class WithdrawalCreatedHandler implements WithdrawalEventHandler {
                 .build();
 
         return withdrawalCreatedHookMessageGenerator.generate(withdrawal, webhook, msgGenParams);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
     }
 }

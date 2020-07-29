@@ -16,11 +16,13 @@ import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.http.entity.ContentType;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class DestinationCreatedHookMessageGeneratorTest {
 
@@ -28,7 +30,6 @@ public class DestinationCreatedHookMessageGeneratorTest {
     public static final String URL = "/url";
     public static final String WALLET_ID = "wallet_id";
     public static final String IDENTITY_ID = "identity_id";
-    public static final String TEST = "test";
     public static final String SOURCE_ID = "sourceId";
     public static final String DESTINATION_ID = "destination_id";
 
@@ -65,7 +66,6 @@ public class DestinationCreatedHookMessageGeneratorTest {
         destination.setResource(new DestinationResource().type(DestinationResource.TypeEnum.BANKCARD));
         destination.setCurrency("RUB");
 
-
         event.setMessage(objectMapper.writeValueAsString(destination));
         event.setDestinationId(DESTINATION_ID);
 
@@ -81,15 +81,14 @@ public class DestinationCreatedHookMessageGeneratorTest {
 
         System.out.println(generate);
 
-        Assert.assertEquals(EVENT_ID, generate.getEventId());
-        Assert.assertEquals(URL, generate.getUrl());
-        Assert.assertEquals(ContentType.APPLICATION_JSON.getMimeType(), generate.getContentType());
-        Assert.assertEquals(SOURCE_ID, generate.getSourceId());
-        Assert.assertNotNull(generate.getAdditionalHeaders().get(AdditionalHeadersGenerator.SIGNATURE_HEADER));
+        assertEquals(EVENT_ID, generate.getEventId());
+        assertEquals(URL, generate.getUrl());
+        assertEquals(ContentType.APPLICATION_JSON.getMimeType(), generate.getContentType());
+        assertEquals(SOURCE_ID, generate.getSourceId());
+        assertNotNull(generate.getAdditionalHeaders().get(AdditionalHeadersGenerator.SIGNATURE_HEADER));
         byte[] requestBody = generate.getRequestBody();
 
         DestinationCreated value = objectMapper.readValue(requestBody, DestinationCreated.class);
-        Assert.assertNotNull(IDENTITY_ID, value.getDestination().getIdentity());
-
+        assertNotNull(IDENTITY_ID, value.getDestination().getIdentity());
     }
 }

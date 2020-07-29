@@ -1,10 +1,6 @@
 package com.rbkmoney.wallets_hooker.handler.withdrawal;
 
 import com.rbkmoney.fistful.withdrawal.TimestampedChange;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import lombok.RequiredArgsConstructor;
@@ -18,10 +14,12 @@ public class WithdrawalFailedHandler implements WithdrawalEventHandler {
 
     private final WithdrawalChangeStatusHandler withdrawalChangeStatusHandler;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "status_changed.status.failed",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetStatusChanged()
+                && change.getChange().getStatusChanged().isSetStatus()
+                && change.getChange().getStatusChanged().getStatus().isSetFailed();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -35,11 +33,5 @@ public class WithdrawalFailedHandler implements WithdrawalEventHandler {
                 EventType.WITHDRAWAL_FAILED);
 
         log.info("Finish handling WithdrawalFailedChange: withdrawalId={}", withdrawalId);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
     }
 }

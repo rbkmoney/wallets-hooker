@@ -1,10 +1,6 @@
 package com.rbkmoney.wallets_hooker.handler.wallet;
 
 import com.rbkmoney.fistful.wallet.TimestampedChange;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.dao.wallet.WalletReferenceDao;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WalletIdentityReference;
@@ -19,10 +15,11 @@ public class WalletAccountCreatedHandler implements WalletEventHandler {
 
     private final WalletReferenceDao walletReferenceDao;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "account.created",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetAccount()
+                && change.getChange().getAccount().isSetCreated();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -39,11 +36,4 @@ public class WalletAccountCreatedHandler implements WalletEventHandler {
 
         log.info("Finish handling WalletAccountCreatedChange: walletId={}, identityId={}", walletId, identityId);
     }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
-    }
-
 }

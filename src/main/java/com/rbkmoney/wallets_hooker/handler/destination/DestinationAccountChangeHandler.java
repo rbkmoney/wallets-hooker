@@ -3,10 +3,6 @@ package com.rbkmoney.wallets_hooker.handler.destination;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.fistful.destination.AccountChange;
 import com.rbkmoney.fistful.destination.TimestampedChange;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationMessageDaoImpl;
@@ -40,10 +36,11 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
 
     private final ObjectMapper objectMapper;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "account",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetAccount()
+                && change.getChange().getAccount().isSetCreated();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -52,7 +49,7 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
             AccountChange account = change.getChange().getAccount();
             String identityId = account.getCreated().getIdentity();
 
-            log.info("Start handling DestinationAccountChange: destinationId={}, identityId={}", destinationId, identityId);
+            log.info("Start handling DestinationAccountCreatedChange: destinationId={}, identityId={}", destinationId, identityId);
 
             DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
             Destination destination = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
@@ -68,11 +65,11 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
                             event.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
 
-            log.info("Finish handling destination event account change: destinationId={}, identityId={}", destinationId, identityId);
+            log.info("Finish handling DestinationAccountCreatedChange: destinationId={}, identityId={}", destinationId, identityId);
 
         } catch (IOException e) {
-            log.error("Error while handling DestinationAccountChange: {}", change, e);
-            throw new HandleEventException("Error while handling DestinationAccountChange", e);
+            log.error("Error while handling DestinationAccountCreatedChange: {}", change, e);
+            throw new HandleEventException("Error while handling DestinationAccountCreatedChange", e);
         }
     }
 
@@ -98,11 +95,5 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
         destinationIdentityReference.setExternalId(externalID);
 
         destinationReferenceDao.create(destinationIdentityReference);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
     }
 }

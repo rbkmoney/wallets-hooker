@@ -3,10 +3,6 @@ package com.rbkmoney.wallets_hooker.handler.destination;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.fistful.destination.TimestampedChange;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.wallets_hooker.converter.DestinationToDestinationMessageConverter;
@@ -26,10 +22,10 @@ public class DestinationCreatedHandler implements DestinationEventHandler {
     private final DestinationToDestinationMessageConverter destinationToDestinationMessageConverter;
     private final ObjectMapper objectMapper;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "created",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetCreated();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -53,9 +49,4 @@ public class DestinationCreatedHandler implements DestinationEventHandler {
         }
     }
 
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
-    }
 }

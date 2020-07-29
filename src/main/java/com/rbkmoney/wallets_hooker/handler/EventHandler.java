@@ -1,11 +1,8 @@
 package com.rbkmoney.wallets_hooker.handler;
 
-import com.rbkmoney.geck.filter.Filter;
-
 public interface EventHandler<C, P> {
-    default boolean accept(C change) {
-        return getFilter().match(change);
-    }
+
+    boolean accept(C change);
+
     void handle(C change, P parent);
-    Filter getFilter();
 }

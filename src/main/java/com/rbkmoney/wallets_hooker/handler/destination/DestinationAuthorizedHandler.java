@@ -2,10 +2,6 @@ package com.rbkmoney.wallets_hooker.handler.destination;
 
 import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.fistful.destination.TimestampedChange;
-import com.rbkmoney.geck.filter.Filter;
-import com.rbkmoney.geck.filter.PathConditionFilter;
-import com.rbkmoney.geck.filter.condition.IsNullCondition;
-import com.rbkmoney.geck.filter.rule.PathConditionRule;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.dao.destination.DestinationReferenceDao;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
@@ -30,10 +26,12 @@ public class DestinationAuthorizedHandler implements DestinationEventHandler {
     private final WebHookMessageSenderService webHookMessageSenderService;
     private final WebHookDao webHookDao;
 
-    @SuppressWarnings("rawtypes")
-    private final Filter filter = new PathConditionFilter(new PathConditionRule(
-            "status.changed.authorized",
-            new IsNullCondition().not()));
+    @Override
+    public boolean accept(TimestampedChange change) {
+        return change.getChange().isSetStatus()
+                && change.getChange().getStatus().isSetChanged()
+                && change.getChange().getStatus().getChanged().isSetAuthorized();
+    }
 
     @Override
     public void handle(TimestampedChange change, MachineEvent event) {
@@ -55,12 +53,6 @@ public class DestinationAuthorizedHandler implements DestinationEventHandler {
                 .forEach(webHookMessageSenderService::send);
 
         log.info("Finish handling DestinationAuthorizedChange: destinationId={}", destinationId);
-    }
-
-    @Override
-    @SuppressWarnings("rawtypes")
-    public Filter getFilter() {
-        return filter;
     }
 
     private WebhookMessage generateDestinationChangeHookMsg(
