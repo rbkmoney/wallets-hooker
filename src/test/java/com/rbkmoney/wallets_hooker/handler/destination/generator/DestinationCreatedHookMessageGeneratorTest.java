@@ -4,12 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
-import com.rbkmoney.wallets_hooker.config.MappingConfig;
+import com.rbkmoney.wallets_hooker.config.ObjectMapperConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.handler.AdditionalHeadersGenerator;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -32,7 +32,7 @@ public class DestinationCreatedHookMessageGeneratorTest {
     public static final String SOURCE_ID = "sourceId";
     public static final String DESTINATION_ID = "destination_id";
 
-    ObjectMapper objectMapper = new MappingConfig().objectMapper();
+    ObjectMapper objectMapper = new ObjectMapperConfig().objectMapper();
 
     Signer signer = new AsymSigner();
 

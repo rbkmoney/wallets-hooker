@@ -1,6 +1,7 @@
 package com.rbkmoney.wallets_hooker.handler.poller.impl;
 
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
+import com.rbkmoney.wallets_hooker.handler.AdditionalHeadersGenerator;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import org.junit.Assert;

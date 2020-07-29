@@ -72,15 +72,6 @@ kafka:
         enabled:
           false
 
-withdrawal.polling:
-  url: http://localhost:8022/v1/eventsink/withdrawal
-  maxPoolSize: 1
-  delay: 5000
-  retryDelay: 5000
-  lastEventId: 1859
-
-fistful.pollingEnabled: true
-
 merchant.callback.timeout: 10
 
 waiting:

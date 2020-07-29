@@ -18,7 +18,7 @@ import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityRefere
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
 import com.rbkmoney.wallets_hooker.handler.destination.generator.DestinationCreatedHookMessageGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;

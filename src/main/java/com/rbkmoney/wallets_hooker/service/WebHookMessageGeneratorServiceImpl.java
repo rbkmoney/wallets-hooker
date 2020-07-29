@@ -1,7 +1,7 @@
 package com.rbkmoney.wallets_hooker.service;
 
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.http.entity.ContentType;
 import org.springframework.beans.factory.annotation.Value;
