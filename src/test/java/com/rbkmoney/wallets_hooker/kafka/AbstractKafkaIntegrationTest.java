@@ -1,9 +1,7 @@
 package com.rbkmoney.wallets_hooker.kafka;
 
-import com.rbkmoney.kafka.common.serialization.AbstractThriftDeserializer;
-import com.rbkmoney.wallets_hooker.configuration.KafkaConfig;
+import com.rbkmoney.wallets_hooker.config.KafkaConfig;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
-import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
@@ -42,7 +40,7 @@ public abstract class AbstractKafkaIntegrationTest extends AbstractPostgresInteg
         @Override
         public void initialize(ConfigurableApplicationContext configurableApplicationContext) {
             TestPropertyValues
-                    .of("kafka.bootstrap.servers=" + kafka.getBootstrapServers())
+                    .of("kafka.bootstrap-servers=" + kafka.getBootstrapServers())
                     .applyTo(configurableApplicationContext.getEnvironment());
             initTopic(WEBHOOK_FORWARD);
         }

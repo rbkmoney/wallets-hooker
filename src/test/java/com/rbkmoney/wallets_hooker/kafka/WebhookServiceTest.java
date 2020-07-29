@@ -42,7 +42,7 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
     public static final String URL_2 = TEST + "/qwe";
     public static final String KEY = "key";
 
-    @Value("${kafka.topic.hook}")
+    @Value("${kafka.topic.hook.name}")
     private String topicName;
 
     @Autowired

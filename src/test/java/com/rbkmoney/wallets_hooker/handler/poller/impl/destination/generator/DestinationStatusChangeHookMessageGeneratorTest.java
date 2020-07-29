@@ -7,7 +7,7 @@ import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.fistful.destination.Unauthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
-import com.rbkmoney.wallets_hooker.configuration.MappingConfig;
+import com.rbkmoney.wallets_hooker.config.MappingConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;

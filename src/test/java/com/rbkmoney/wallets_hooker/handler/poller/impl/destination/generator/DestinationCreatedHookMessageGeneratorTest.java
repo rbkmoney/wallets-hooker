@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.rbkmoney.swag.wallets.webhook.events.model.Destination;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationCreated;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
-import com.rbkmoney.wallets_hooker.configuration.MappingConfig;
+import com.rbkmoney.wallets_hooker.config.MappingConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationMessage;

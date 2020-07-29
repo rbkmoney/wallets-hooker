@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.configuration;
+package com.rbkmoney.wallets_hooker.config;
 
 import com.rbkmoney.eventstock.client.EventPublisher;
 import com.rbkmoney.eventstock.client.poll.FistfulPollingEventPublisherBuilder;
