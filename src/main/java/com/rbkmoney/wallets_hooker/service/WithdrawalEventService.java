@@ -3,6 +3,7 @@ package com.rbkmoney.wallets_hooker.service;
 import com.rbkmoney.fistful.withdrawal.TimestampedChange;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.sink.common.parser.impl.MachineEventParser;
+import com.rbkmoney.wallets_hooker.handler.withdrawal.WithdrawalEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
