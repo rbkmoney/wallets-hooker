@@ -18,12 +18,14 @@ import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
-import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 public class DestinationStatusChangeHookMessageGeneratorTest {
 
@@ -32,7 +34,6 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
     public static final String WALLET_ID = "wallet_id";
     public static final String IDENTITY_ID = "identity_id";
     public static final String SOURCE_ID = "sourceId";
-    public static final String DESTINATION_ID = "destination_id";
     public static final long PARENT_ID = 0L;
     public static final String T_08_43_42_Z = "2019-07-02T08:43:42Z";
 
@@ -76,8 +77,8 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
 
         byte[] requestBody = generate.getRequestBody();
         DestinationAuthorized destinationAuthorized = objectMapper.readValue(requestBody, DestinationAuthorized.class);
-        Assert.assertEquals(SOURCE_ID, destinationAuthorized.getDestinationID());
-        Assert.assertEquals("externalId", destinationAuthorized.getExternalID());
+        assertEquals(SOURCE_ID, destinationAuthorized.getDestinationID());
+        assertEquals("externalId", destinationAuthorized.getExternalID());
 
         statusChange = new StatusChange();
         statusChange.setChanged(Status.unauthorized(new Unauthorized()));
@@ -95,9 +96,9 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
 
         requestBody = generate.getRequestBody();
         DestinationUnauthorized destinationUnauthorized = objectMapper.readValue(requestBody, DestinationUnauthorized.class);
-        Assert.assertEquals(SOURCE_ID, destinationUnauthorized.getDestinationID());
-        Assert.assertEquals(666L, generate.getParentEventId());
-        Assert.assertEquals("externalId", destinationUnauthorized.getExternalID());
+        assertEquals(SOURCE_ID, destinationUnauthorized.getDestinationID());
+        assertEquals(666L, generate.getParentEventId());
+        assertEquals("externalId", destinationUnauthorized.getExternalID());
     }
 
     @Test(expected = GenerateMessageException.class)
@@ -118,7 +119,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
                 .parentId(PARENT_ID)
                 .createdAt(T_08_43_42_Z)
                 .build();
-        Mockito.when(mock.generate(event, model, genParam)).thenThrow(new RuntimeException("test exception!"));
+        when(mock.generate(event, model, genParam)).thenThrow(new RuntimeException("test exception!"));
 
         destinationCreatedHookMessageGenerator.generate(event, model, genParam);
     }

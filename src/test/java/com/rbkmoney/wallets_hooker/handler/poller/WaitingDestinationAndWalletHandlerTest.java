@@ -1,11 +1,9 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
-import com.rbkmoney.eventstock.client.EventAction;
 import com.rbkmoney.fistful.destination.Authorized;
 import com.rbkmoney.fistful.destination.Status;
 import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.fistful.destination.Unauthorized;
-import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.machinegun.msgpack.Value;
@@ -15,6 +13,8 @@ import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WalletEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WithdrawalEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -41,10 +40,10 @@ import static org.mockito.Mockito.verify;
 public class WaitingDestinationAndWalletHandlerTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
-    private WalletEventSinkHandler walletEventSinkHandler;
+    private WalletEventService walletEventService;
 
     @Autowired
-    private WithdrawalEventSinkHandler withdrawalEventSinkHandler;
+    private WithdrawalEventService withdrawalEventService;
 
     @Autowired
     private DestinationEventService destinationEventService;
@@ -74,19 +73,16 @@ public class WaitingDestinationAndWalletHandlerTest extends AbstractPostgresInte
         destination.setData(Value.bin(new ThriftSerializer<>().serialize("", change)));
         destinationEventService.handleEvents(List.of(destination));
 
-        EventAction action = walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), "test");
-        assertEquals(action, EventAction.CONTINUE);
+        walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
 
         CountDownLatch latch = new CountDownLatch(1);
         new Thread(() -> {
-            SinkEvent sinkEvent = TestBeanFactory.createWithdrawalSucceeded();
-            EventAction eventAction = withdrawalEventSinkHandler.handle(sinkEvent, "test");
-            assertEquals(eventAction, EventAction.CONTINUE);
+            MachineEvent event = TestBeanFactory.createWithdrawalSucceeded();
+            withdrawalEventService.handleEvents(List.of(event));
             latch.countDown();
         }).start();
 
-        EventAction actionNew = withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalEvent(), "test");
-        assertEquals(actionNew, EventAction.CONTINUE);
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
         verify(webHookMessageSenderService, times(1))
                 .send(any());
 

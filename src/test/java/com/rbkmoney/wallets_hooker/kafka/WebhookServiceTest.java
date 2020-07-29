@@ -5,10 +5,10 @@ import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.handler.poller.TestBeanFactory;
-import com.rbkmoney.wallets_hooker.handler.poller.WalletEventSinkHandler;
-import com.rbkmoney.wallets_hooker.handler.poller.WithdrawalEventSinkHandler;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WalletEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WithdrawalEventService;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -52,10 +52,10 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
     private DestinationEventService destinationEventService;
 
     @Autowired
-    private WalletEventSinkHandler walletEventSinkHandler;
+    private WalletEventService walletEventService;
 
     @Autowired
-    private WithdrawalEventSinkHandler withdrawalEventSinkHandler;
+    private WithdrawalEventService withdrawalEventService;
 
     @Test
     public void startTest() throws TException {
@@ -84,7 +84,7 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
         destinationAccount.setSourceId(TestBeanFactory.DESTINATION + "_not");
         destinationEventService.handleEvents(List.of(destinationAccount));
 
-        walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), KEY);
+        walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
 
         webhookParams = new WebhookParams()
                 .setEventFilter(new EventFilter()
@@ -95,8 +95,8 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
                 .setUrl(TEST);
         requestHandler.create(webhookParams);
 
-        withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalEvent(), KEY);
-        withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalSucceeded(), KEY);
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalSucceeded()));
 
         Consumer<String, WebhookMessage> consumer = createConsumer(WebHookDeserializer.class);
 

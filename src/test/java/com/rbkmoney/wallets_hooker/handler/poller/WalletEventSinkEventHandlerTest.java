@@ -1,7 +1,5 @@
 package com.rbkmoney.wallets_hooker.handler.poller;
 
-import com.rbkmoney.eventstock.client.EventAction;
-import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.constant.EventTopic;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
@@ -10,6 +8,8 @@ import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WalletEventService;
+import com.rbkmoney.wallets_hooker.service.kafka.WithdrawalEventService;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,10 +35,10 @@ import static org.mockito.Mockito.verify;
 public class WalletEventSinkEventHandlerTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
-    private WalletEventSinkHandler walletEventSinkHandler;
+    private WalletEventService walletEventService;
 
     @Autowired
-    private WithdrawalEventSinkHandler withdrawalEventSinkHandler;
+    private WithdrawalEventService withdrawalEventService;
 
     @Autowired
     private DestinationEventService destinationEventService;
@@ -60,20 +60,13 @@ public class WalletEventSinkEventHandlerTest extends AbstractPostgresIntegration
 
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
-
-        EventAction action = walletEventSinkHandler.handle(TestBeanFactory.createWalletEvent(), "test");
-        assertEquals(action, EventAction.CONTINUE);
-
-        action = withdrawalEventSinkHandler.handle(TestBeanFactory.createWithdrawalEvent(), "test");
-        assertEquals(action, EventAction.CONTINUE);
+        walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
 
         verify(webHookMessageSenderService, times(1))
                 .send(any());
 
-        SinkEvent sinkEvent = TestBeanFactory.createWithdrawalSucceeded();
-
-        action = withdrawalEventSinkHandler.handle(sinkEvent, "test");
-        assertEquals(action, EventAction.CONTINUE);
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalSucceeded()));
         verify(webHookMessageSenderService, times(2))
                 .send(any());
 
