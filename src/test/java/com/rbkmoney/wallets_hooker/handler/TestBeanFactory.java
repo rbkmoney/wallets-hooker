@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller;
+package com.rbkmoney.wallets_hooker.handler;
 
 import com.rbkmoney.fistful.account.Account;
 import com.rbkmoney.fistful.base.*;
@@ -153,6 +153,7 @@ public class TestBeanFactory {
                 .build();
     }
 
+    @SuppressWarnings("rawtypes")
     private static <T extends TBase> MachineEvent machineEvent(
             String sourceId,
             Long eventId,

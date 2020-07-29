@@ -2,9 +2,8 @@ package com.rbkmoney.wallets_hooker.kafka;
 
 import com.rbkmoney.fistful.webhooker.*;
 import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
-import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.HookerApplication;
-import com.rbkmoney.wallets_hooker.handler.poller.TestBeanFactory;
+import com.rbkmoney.wallets_hooker.handler.TestBeanFactory;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.wallets_hooker.service.kafka.DestinationEventService;
 import com.rbkmoney.wallets_hooker.service.kafka.WalletEventService;
@@ -80,10 +79,6 @@ public class WebhookServiceTest extends AbstractKafkaIntegrationTest {
 
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
-        MachineEvent destinationAccount = TestBeanFactory.createDestinationAccount();
-        destinationAccount.setSourceId(TestBeanFactory.DESTINATION + "_not");
-        destinationEventService.handleEvents(List.of(destinationAccount));
-
         walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
 
         webhookParams = new WebhookParams()

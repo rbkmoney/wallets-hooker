@@ -1,9 +1,7 @@
-package com.rbkmoney.wallets_hooker.handler.poller;
+package com.rbkmoney.wallets_hooker.handler;
 
 import com.rbkmoney.wallets_hooker.HookerApplication;
-import com.rbkmoney.wallets_hooker.constant.EventTopic;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
-import com.rbkmoney.wallets_hooker.dao.EventLogDao;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
@@ -21,8 +19,8 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
-import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -32,7 +30,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(classes = HookerApplication.class)
 @TestPropertySource(properties = "fistful.pollingEnabled=false")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class WalletEventSinkEventHandlerTest extends AbstractPostgresIntegrationTest {
+public class WaitingWithdrawalReferenceEventHandlerTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private WalletEventService walletEventService;
@@ -46,37 +44,28 @@ public class WalletEventSinkEventHandlerTest extends AbstractPostgresIntegration
     @Autowired
     private WebHookDao webHookDao;
 
-    @Autowired
-    private EventLogDao eventLogDao;
-
     @MockBean
     private WebHookMessageSenderService webHookMessageSenderService;
 
     @Test
-    public void handle() {
+    public void handleWaitingWithdrawalReference() throws InterruptedException {
         WebHookModel webhook = TestBeanFactory.createWebhookModel();
-
         webHookDao.create(webhook);
 
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        new Thread(() -> {
+            withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
+            verify(webHookMessageSenderService, times(1))
+                    .send(any());
+            latch.countDown();
+        }).start();
+
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
         walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
-        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
 
-        verify(webHookMessageSenderService, times(1))
-                .send(any());
-
-        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalSucceeded()));
-        verify(webHookMessageSenderService, times(2))
-                .send(any());
-
-        Long lastEventId = eventLogDao.getLastEventId(EventTopic.DESTINATION, 0L);
-        assertEquals(2L, lastEventId.longValue());
-
-        lastEventId = eventLogDao.getLastEventId(EventTopic.WALLET, 0L);
-        assertEquals(TestBeanFactory.WALLET_ID, lastEventId.longValue());
-
-        lastEventId = eventLogDao.getLastEventId(EventTopic.WITHDRAWAL, 0L);
-        assertEquals(67L, lastEventId.longValue());
+        latch.await();
     }
 }

@@ -1,5 +1,9 @@
-package com.rbkmoney.wallets_hooker.handler.poller;
+package com.rbkmoney.wallets_hooker.handler;
 
+import com.rbkmoney.fistful.destination.*;
+import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
+import com.rbkmoney.machinegun.eventsink.MachineEvent;
+import com.rbkmoney.machinegun.msgpack.Value;
 import com.rbkmoney.wallets_hooker.HookerApplication;
 import com.rbkmoney.wallets_hooker.dao.AbstractPostgresIntegrationTest;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
@@ -30,7 +34,7 @@ import static org.mockito.Mockito.verify;
 @SpringBootTest(classes = HookerApplication.class)
 @TestPropertySource(properties = "fistful.pollingEnabled=false")
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
-public class WaitingWithdrawalReferenceEventHandlerTest extends AbstractPostgresIntegrationTest {
+public class WaitingDestinationAndWalletHandlerTest extends AbstractPostgresIntegrationTest {
 
     @Autowired
     private WalletEventService walletEventService;
@@ -48,24 +52,40 @@ public class WaitingWithdrawalReferenceEventHandlerTest extends AbstractPostgres
     private WebHookMessageSenderService webHookMessageSenderService;
 
     @Test
-    public void handleWaitingWithdrawalReference() throws InterruptedException {
+    public void handleWaitingDestinationAndWallet() throws InterruptedException {
         WebHookModel webhook = TestBeanFactory.createWebhookModel();
-        webHookDao.create(webhook);
 
+        webHookDao.create(webhook);
         destinationEventService.handleEvents(List.of(TestBeanFactory.createDestination()));
+        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
+
+        MachineEvent destination = TestBeanFactory.createDestination();
+        com.rbkmoney.fistful.destination.Change change = new com.rbkmoney.fistful.destination.Change();
+        change.setStatus(StatusChange.changed(Status.authorized(new Authorized())));
+        destination.setData(Value.bin(new ThriftSerializer<>().serialize("", new TimestampedChange()
+                .setChange(change)
+                .setOccuredAt("2016-03-22T06:12:27Z"))));
+        destinationEventService.handleEvents(List.of(destination));
+
+        change.setStatus(StatusChange.changed(Status.unauthorized(new Unauthorized())));
+        destination.setData(Value.bin(new ThriftSerializer<>().serialize("", new TimestampedChange()
+                .setChange(change)
+                .setOccuredAt("2016-03-22T06:12:27Z"))));
+        destinationEventService.handleEvents(List.of(destination));
+        walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
 
         CountDownLatch latch = new CountDownLatch(1);
-
         new Thread(() -> {
-            withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
-            verify(webHookMessageSenderService, times(1))
-                    .send(any());
+            MachineEvent event = TestBeanFactory.createWithdrawalSucceeded();
+            withdrawalEventService.handleEvents(List.of(event));
             latch.countDown();
         }).start();
 
-        destinationEventService.handleEvents(List.of(TestBeanFactory.createDestinationAccount()));
+        withdrawalEventService.handleEvents(List.of(TestBeanFactory.createWithdrawalEvent()));
+        verify(webHookMessageSenderService, times(1))
+                .send(any());
 
-        walletEventService.handleEvents(List.of(TestBeanFactory.createWalletEvent()));
         latch.await();
     }
+
 }
