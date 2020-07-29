@@ -10,6 +10,9 @@ management:
       statsd:
         flavor: etsy
         enabled: false
+  endpoint:
+    health:
+      show-details: always
 spring:
   application:
     name: @project.name@
