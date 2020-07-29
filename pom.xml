@@ -41,6 +41,7 @@
         <swag-wallets-webhook-events.version>1.9-3fc881e</swag-wallets-webhook-events.version>
         <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
         <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
+        <sink-common-lib.version>0.0.4</sink-common-lib.version>
     </properties>
 
     <dependencies>
@@ -180,6 +181,11 @@
             <groupId>com.rbkmoney</groupId>
             <artifactId>machinegun-proto</artifactId>
             <version>${machinegun-proto.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
+            <artifactId>sink-common-lib</artifactId>
+            <version>${sink-common-lib.version}</version>
         </dependency>
 
         <!--Test libs-->
