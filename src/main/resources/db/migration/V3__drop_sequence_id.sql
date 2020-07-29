@@ -1,0 +1,2 @@
+ALTER TABLE whook.destination_identity_reference DROP COLUMN sequence_id;
+ALTER TABLE whook.withdrawal_identity_wallet_reference DROP COLUMN sequence_id;
