@@ -44,7 +44,6 @@ public class WithdrawalReferenceDaoImpl extends AbstractDao implements Withdrawa
                                 WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WALLET_ID,
                                 WITHDRAWAL_IDENTITY_WALLET_REFERENCE.IDENTITY_ID,
                                 WITHDRAWAL_IDENTITY_WALLET_REFERENCE.EVENT_ID,
-                                WITHDRAWAL_IDENTITY_WALLET_REFERENCE.SEQUENCE_ID,
                                 WITHDRAWAL_IDENTITY_WALLET_REFERENCE.EXTERNAL_ID)
                         .from(WITHDRAWAL_IDENTITY_WALLET_REFERENCE)
                         .where(WITHDRAWAL_IDENTITY_WALLET_REFERENCE.WITHDRAWAL_ID.eq(id)),

@@ -28,7 +28,6 @@ public class DestinationReferenceDaoImplTest extends AbstractPostgresIntegration
     public void create() {
         DestinationIdentityReference reference = new DestinationIdentityReference();
         reference.setIdentityId("identity");
-        reference.setSequenceId(0L);
         reference.setEventId("eventId");
         String destination = "destination";
         reference.setDestinationId(destination);
