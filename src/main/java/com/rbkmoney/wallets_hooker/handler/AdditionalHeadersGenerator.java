@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl;
+package com.rbkmoney.wallets_hooker.handler;
 
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.service.crypt.Signer;

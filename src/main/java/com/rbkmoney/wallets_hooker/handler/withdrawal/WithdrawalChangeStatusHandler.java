@@ -1,24 +1,22 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal;
+package com.rbkmoney.wallets_hooker.handler.withdrawal;
 
-import com.rbkmoney.fistful.withdrawal.Change;
-import com.rbkmoney.fistful.withdrawal.SinkEvent;
 import com.rbkmoney.fistful.withdrawal.StatusChange;
+import com.rbkmoney.fistful.withdrawal.TimestampedChange;
+import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.wallets_hooker.dao.webhook.WebHookDao;
 import com.rbkmoney.wallets_hooker.dao.withdrawal.WithdrawalReferenceDao;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.WithdrawalIdentityWalletReference;
 import com.rbkmoney.wallets_hooker.exception.HandleEventException;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator.WithdrawalStatusChangedHookMessageGenerator;
+import com.rbkmoney.wallets_hooker.handler.withdrawal.generator.WithdrawalStatusChangedHookMessageGenerator;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Slf4j
 @Service
@@ -33,22 +31,29 @@ public class WithdrawalChangeStatusHandler {
     private final WithdrawalStatusChangedHookMessageGenerator withdrawalStatusChangedHookMessageGenerator;
     private final WebHookMessageSenderService webHookMessageSenderService;
 
-    public void handleChangeStatus(Change change, SinkEvent sinkEvent, String withdrawalId, EventType eventType) {
+    public void handleChangeStatus(
+            TimestampedChange change,
+            MachineEvent event,
+            String withdrawalId,
+            EventType eventType) {
         try {
             WithdrawalIdentityWalletReference reference = waitReferenceWithdrawal(withdrawalId);
-
             Long parentId = Long.valueOf(reference.getEventId());
 
-            List<WebHookModel> webHookModels = webHookDao.getByIdentityAndEventType(reference.getIdentityId(), eventType);
-
-            webHookModels.stream()
+            webHookDao.getByIdentityAndEventType(reference.getIdentityId(), eventType).stream()
                     .filter(webHook -> webHook.getWalletId() == null || webHook.getWalletId().equals(reference.getWalletId()))
-                    .map(webhook -> generateWithdrawalStatusChangeHookMsg(change.getStatusChanged(), webhook, withdrawalId, sinkEvent.getId(),
-                            parentId, sinkEvent.getCreatedAt(), reference.getExternalId()))
+                    .map(webhook -> generateWithdrawalStatusChangeHookMsg(
+                            change.getChange().getStatusChanged(),
+                            webhook,
+                            withdrawalId,
+                            event.getEventId(),
+                            parentId,
+                            event.getCreatedAt(),
+                            reference.getExternalId()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
-            log.error("WithdrawalChangeStatusHandler error when handle change: {}, withdrawalId: {} e: ", change, withdrawalId, e);
-            throw new HandleEventException("WithdrawalChangeStatusHandler error when handle change!", e);
+            log.error("Error while handling WithdrawalStatusChangedChange: {}, withdrawalId: {}", change, withdrawalId, e);
+            throw new HandleEventException("Error while handling WithdrawalStatusChangedChange", e);
         }
     }
 
@@ -68,9 +73,14 @@ public class WithdrawalChangeStatusHandler {
         return withdrawalIdentityWalletReference;
     }
 
-    private WebhookMessage generateWithdrawalStatusChangeHookMsg(StatusChange statusChanged, WebHookModel webhook,
-                                                                 String withdrawalId, long eventId, Long parentId,
-                                                                 String createdAt, String externalId) {
+    private WebhookMessage generateWithdrawalStatusChangeHookMsg(
+            StatusChange statusChanged,
+            WebHookModel webhook,
+            String withdrawalId,
+            long eventId,
+            Long parentId,
+            String createdAt,
+            String externalId) {
         MessageGenParams messageGenParams = MessageGenParams.builder()
                 .sourceId(withdrawalId)
                 .eventId(eventId)
@@ -78,6 +88,7 @@ public class WithdrawalChangeStatusHandler {
                 .createdAt(createdAt)
                 .externalId(externalId)
                 .build();
+
         return withdrawalStatusChangedHookMessageGenerator.generate(statusChanged, webhook, messageGenParams);
     }
 

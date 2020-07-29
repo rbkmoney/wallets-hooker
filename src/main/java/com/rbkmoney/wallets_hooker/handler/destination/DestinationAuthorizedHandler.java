@@ -13,7 +13,7 @@ import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.domain.tables.pojos.DestinationIdentityReference;
 import com.rbkmoney.wallets_hooker.handler.destination.generator.DestinationStatusChangeHookMessageGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageSenderService;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;
 import lombok.RequiredArgsConstructor;

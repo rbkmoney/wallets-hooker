@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.model;
+package com.rbkmoney.wallets_hooker.model;
 
 import lombok.Builder;
 import lombok.Data;

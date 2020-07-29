@@ -1,4 +1,4 @@
-package com.rbkmoney.wallets_hooker.handler.poller.impl.withdrawal.generator;
+package com.rbkmoney.wallets_hooker.handler.withdrawal.generator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,8 +9,8 @@ import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalBody;
 import com.rbkmoney.swag.wallets.webhook.events.model.WithdrawalStarted;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.handler.AdditionalHeadersGenerator;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.BaseHookMessageGenerator;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.webhook.dispatcher.WebhookMessage;

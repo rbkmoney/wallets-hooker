@@ -7,12 +7,12 @@ import com.rbkmoney.fistful.destination.StatusChange;
 import com.rbkmoney.fistful.destination.Unauthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationAuthorized;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationUnauthorized;
-import com.rbkmoney.wallets_hooker.config.MappingConfig;
+import com.rbkmoney.wallets_hooker.config.ObjectMapperConfig;
 import com.rbkmoney.wallets_hooker.domain.WebHookModel;
 import com.rbkmoney.wallets_hooker.domain.enums.EventType;
 import com.rbkmoney.wallets_hooker.exception.GenerateMessageException;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.AdditionalHeadersGenerator;
-import com.rbkmoney.wallets_hooker.handler.poller.impl.model.MessageGenParams;
+import com.rbkmoney.wallets_hooker.handler.AdditionalHeadersGenerator;
+import com.rbkmoney.wallets_hooker.model.MessageGenParams;
 import com.rbkmoney.wallets_hooker.service.WebHookMessageGeneratorServiceImpl;
 import com.rbkmoney.wallets_hooker.service.crypt.AsymSigner;
 import com.rbkmoney.wallets_hooker.service.crypt.KeyPair;
@@ -36,7 +36,7 @@ public class DestinationStatusChangeHookMessageGeneratorTest {
     public static final long PARENT_ID = 0L;
     public static final String T_08_43_42_Z = "2019-07-02T08:43:42Z";
 
-    ObjectMapper objectMapper = new MappingConfig().objectMapper();
+    ObjectMapper objectMapper = new ObjectMapperConfig().objectMapper();
 
     Signer signer = new AsymSigner();
 
