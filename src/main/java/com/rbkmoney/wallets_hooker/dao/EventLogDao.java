@@ -1,11 +1,9 @@
 package com.rbkmoney.wallets_hooker.dao;
 
-import com.rbkmoney.wallets_hooker.constant.EventTopic;
+import com.rbkmoney.wallets_hooker.domain.enums.EventTopic;
 
 public interface EventLogDao {
 
-    Long getLastEventId(EventTopic eventTopic, Long defaultValue);
-
-    void create(Long id, EventTopic eventType);
+    void create(String sourceId, Long eventId, EventTopic eventTopic);
 
 }
