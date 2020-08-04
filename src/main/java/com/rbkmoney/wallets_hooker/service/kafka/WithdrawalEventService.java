@@ -5,6 +5,7 @@ import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.sink.common.parser.impl.MachineEventParser;
 import com.rbkmoney.wallets_hooker.dao.EventLogDao;
 import com.rbkmoney.wallets_hooker.domain.enums.EventTopic;
+import com.rbkmoney.wallets_hooker.domain.tables.pojos.EventLog;
 import com.rbkmoney.wallets_hooker.handler.withdrawal.WithdrawalEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -29,6 +31,15 @@ public class WithdrawalEventService {
     }
 
     private void handleIfAccept(MachineEvent machineEvent) {
+        Optional<EventLog> duplicate = eventLogDao.get(
+                machineEvent.getSourceId(),
+                machineEvent.getEventId(),
+                EventTopic.withdrawal);
+
+        if (duplicate.isPresent()) {
+            return;
+        }
+
         TimestampedChange change = parser.parse(machineEvent);
 
         if (change.isSetChange()) {
