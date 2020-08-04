@@ -3,8 +3,8 @@ package com.rbkmoney.wallets_hooker.service.kafka;
 import com.rbkmoney.fistful.destination.TimestampedChange;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.sink.common.parser.impl.MachineEventParser;
-import com.rbkmoney.wallets_hooker.constant.EventTopic;
 import com.rbkmoney.wallets_hooker.dao.EventLogDao;
+import com.rbkmoney.wallets_hooker.domain.enums.EventTopic;
 import com.rbkmoney.wallets_hooker.handler.destination.DestinationEventHandler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +37,9 @@ public class DestinationEventService {
                     .forEach(handler -> handler.handle(change, machineEvent));
         }
 
-        eventLogDao.create(machineEvent.getEventId(), EventTopic.DESTINATION);
+        eventLogDao.create(
+                machineEvent.getSourceId(),
+                machineEvent.getEventId(),
+                EventTopic.destination);
     }
 }
