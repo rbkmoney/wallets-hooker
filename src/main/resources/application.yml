@@ -72,7 +72,13 @@ kafka:
         enabled:
           false
 
-merchant.callback.timeout: 10
+webhook:
+  sender:
+    enabled: true
+
+merchant:
+  callback:
+    timeout: 10
 
 waiting:
   reference:
