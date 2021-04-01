@@ -5,25 +5,24 @@
 
     <parent>
         <groupId>com.rbkmoney</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.3.8</version>
+        <artifactId>service-parent-pom</artifactId>
+        <version>1.1.0</version>
     </parent>
 
     <artifactId>wallets-hooker</artifactId>
-    <version>1.1.2-SNAPSHOT</version>
+    <version>1.2.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>wallets-hooker</name>
     <description>Wallets webhooks service</description>
 
     <properties>
-        <java.version>11</java.version>
         <server.port>8022</server.port>
         <management.port>8023</management.port>
         <exposed.ports>${server.port} ${management.port}</exposed.ports>
         <dockerfile.base.service.tag>c0612d6052ac049496b72a23a04acb142035f249</dockerfile.base.service.tag>
         <dockerfile.registry>${env.REGISTRY}</dockerfile.registry>
-        <shared.resources.version>0.3.8</shared.resources.version>
+        <!--        -->
         <db.host.name>localhost</db.host.name>
         <db.host.port>5432</db.host.port>
         <db.name>wallets_hooker</db.name>
@@ -31,14 +30,13 @@
         <db.user>postgres</db.user>
         <db.password>postgres</db.password>
         <db.schema>whook</db.schema>
-        <db.common.lib.version>0.0.1-SNAPSHOT</db.common.lib.version>
+        <!--        -->
         <fistful-proto.version>1.106-ebe76ef</fistful-proto.version>
-        <kafka.common.lib.version>0.0.9</kafka.common.lib.version>
-        <kafka.clients.version>2.5.0</kafka.clients.version>
         <swag-wallets-webhook-events.version>1.9-3fc881e</swag-wallets-webhook-events.version>
         <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
         <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
         <sink-common-lib.version>0.0.4</sink-common-lib.version>
+        <checkstyle.config.suppressions.path>./src/main/resources/checkstyle/checkstyle-suppressions.xml</checkstyle.config.suppressions.path>
     </properties>
 
     <dependencies>
@@ -46,27 +44,22 @@
         <dependency>
             <groupId>com.zaxxer</groupId>
             <artifactId>HikariCP</artifactId>
-            <version>${hikaricp.version}</version>
         </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jooq</groupId>
             <artifactId>jooq</artifactId>
-            <version>${jooq.version}</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>${flyway.version}</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>${lombok.version}</version>
         </dependency>
 
         <!--Spring libs-->
@@ -123,27 +116,22 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>custom-metrics-spring-boot-starter</artifactId>
-            <version>1.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney.woody</groupId>
             <artifactId>woody-thrift</artifactId>
-            <version>1.1.15</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>shared-resources</artifactId>
-            <version>${shared.resources.version}</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney.geck</groupId>
             <artifactId>serializer</artifactId>
-            <version>0.6.11</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>db-common-lib</artifactId>
-            <version>${db.common.lib.version}</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
@@ -153,12 +141,10 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>kafka-common-lib</artifactId>
-            <version>${kafka.common.lib.version}</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>custom-actuator-endpoints</artifactId>
-            <version>0.0.4</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
@@ -193,7 +179,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>mockwebserver</artifactId>
-            <version>3.6.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -246,7 +231,6 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-                <version>2.1.1.RELEASE</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -261,7 +245,7 @@
                 </dependencies>
                 <configuration>
                     <resourceBundles>
-                        <resourceBundle>com.rbkmoney:shared-resources:${shared.resources.version}</resourceBundle>
+                        <resourceBundle>com.rbkmoney:shared-resources:${shared-resources.version}</resourceBundle>
                     </resourceBundles>
                     <attachToMain>false</attachToMain>
                     <attachToTest>false</attachToTest>
@@ -277,7 +261,6 @@
             <plugin>
                 <groupId>org.flywaydb</groupId>
                 <artifactId>flyway-maven-plugin</artifactId>
-                <version>${flyway.version}</version>
                 <configuration>
                     <url>${db.url}</url>
                     <user>${db.user}</user>
@@ -302,7 +285,6 @@
             <plugin>
                 <groupId>org.jooq</groupId>
                 <artifactId>jooq-codegen-maven</artifactId>
-                <version>${jooq.version}</version>
                 <configuration>
                     <jdbc>
                         <driver>org.postgresql.Driver</driver>
@@ -324,7 +306,7 @@
                             <inputSchema>${db.schema}</inputSchema>
                         </database>
                         <target>
-                            <packageName>com.rbkmoney.wallets_hooker.domain</packageName>
+                            <packageName>com.rbkmoney.wallets.hooker.domain</packageName>
                             <directory>target/generated-sources/jooq</directory>
                         </target>
                     </generator>
@@ -342,7 +324,7 @@
             <plugin>
                 <groupId>com.rbkmoney.maven.plugins</groupId>
                 <artifactId>pg-embedded-plugin</artifactId>
-                <version>1.4</version>
+                <version>1.6</version>
                 <configuration>
                     <port>${db.host.port}</port>
                     <dbName>${db.name}</dbName>
