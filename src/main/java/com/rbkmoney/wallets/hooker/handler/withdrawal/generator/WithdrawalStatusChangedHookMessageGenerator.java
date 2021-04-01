@@ -42,11 +42,17 @@ public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessage
     }
 
     @Override
-    protected WebhookMessage generateMessage(StatusChange event, WebHookModel model,
-                                             MessageGenParams messageGenParams) {
+    protected WebhookMessage generateMessage(
+            StatusChange event,
+            WebHookModel model,
+            MessageGenParams messageGenParams) {
         try {
-            String message = initRequestBody(event.getStatus(), messageGenParams.getSourceId(),
-                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
+            String message = initRequestBody(
+                    event.getStatus(),
+                    messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(),
+                    messageGenParams.getCreatedAt(),
+                    messageGenParams.getExternalId());
 
             WebhookMessage webhookMessage = generatorService.generate(event, model, messageGenParams);
             webhookMessage.setParentEventId(initPatenId(model, messageGenParams.getParentId()));
@@ -75,8 +81,12 @@ public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessage
         return super.parentIsNotExistId;
     }
 
-    private String initRequestBody(Status status, String withdrawalId, Long eventId, String createdAt,
-                                   String externalId) throws JsonProcessingException {
+    private String initRequestBody(
+            Status status,
+            String withdrawalId,
+            Long eventId,
+            String createdAt,
+            String externalId) throws JsonProcessingException {
         if (status.isSetFailed()) {
             WithdrawalFailed withdrawalFailed = new WithdrawalFailed()
                     .withdrawalID(withdrawalId)
@@ -97,8 +107,9 @@ public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessage
             return objectMapper.writeValueAsString(withdrawalSucceeded);
         } else {
             log.error("Unknown WithdrawalStatus status: {} withdrawalId: {}", status, withdrawalId);
-            String message =
-                    String.format("Unknown WithdrawalStatus status: %s withdrawalId: %s", status, withdrawalId);
+            String message = String.format(
+                    "Unknown WithdrawalStatus status: %s withdrawalId: %s",
+                    status, withdrawalId);
             throw new GenerateMessageException(message);
         }
     }

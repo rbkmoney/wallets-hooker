@@ -12,20 +12,21 @@ import java.util.Base64;
 
 @Component
 public class AsymSigner implements Signer {
+
     public static final String KEY_ALGORITHM = "RSA";
     public static final String HASH_ALGORITHM = "SHA256withRSA";
-    public static final int KEYSIZE = 2048;
+    public static final int KEY_SIZE = 2048;
 
-    private KeyFactory keyFactory;
-    private Signature sig;
-    private KeyPairGenerator keyGen;
+    private final KeyFactory keyFactory;
+    private final Signature sig;
+    private final KeyPairGenerator keyGen;
 
     public AsymSigner() {
         try {
             this.keyFactory = KeyFactory.getInstance(KEY_ALGORITHM);
             this.sig = Signature.getInstance(HASH_ALGORITHM);
             this.keyGen = KeyPairGenerator.getInstance(KEY_ALGORITHM);
-            this.keyGen.initialize(KEYSIZE);
+            this.keyGen.initialize(KEY_SIZE);
         } catch (NoSuchAlgorithmException e) {
             throw new UnknownCryptoException(e);
         }

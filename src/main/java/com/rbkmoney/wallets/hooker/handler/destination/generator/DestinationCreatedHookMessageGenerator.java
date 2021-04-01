@@ -39,8 +39,10 @@ public class DestinationCreatedHookMessageGenerator extends BaseHookMessageGener
     }
 
     @Override
-    protected WebhookMessage generateMessage(DestinationMessage event, WebHookModel model,
-                                             MessageGenParams messageGenParams) {
+    protected WebhookMessage generateMessage(
+            DestinationMessage event,
+            WebHookModel model,
+            MessageGenParams messageGenParams) {
         try {
             Destination value = objectMapper.readValue(event.getMessage(), Destination.class);
             value.setIdentity(model.getIdentityId());
@@ -49,8 +51,9 @@ public class DestinationCreatedHookMessageGenerator extends BaseHookMessageGener
             destinationCreated.setDestination(value);
             destinationCreated.setEventID(messageGenParams.getEventId().toString());
             destinationCreated.setEventType(Event.EventTypeEnum.DESTINATIONCREATED);
-            OffsetDateTime parse =
-                    OffsetDateTime.parse(messageGenParams.getCreatedAt(), DateTimeFormatter.ISO_DATE_TIME);
+            OffsetDateTime parse = OffsetDateTime.parse(
+                    messageGenParams.getCreatedAt(),
+                    DateTimeFormatter.ISO_DATE_TIME);
             destinationCreated.setOccuredAt(parse);
             destinationCreated.setTopic(Event.TopicEnum.DESTINATIONTOPIC);
 

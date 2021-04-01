@@ -41,11 +41,17 @@ public class DestinationStatusChangeHookMessageGenerator extends BaseHookMessage
     }
 
     @Override
-    protected WebhookMessage generateMessage(StatusChange statusChange, WebHookModel model,
-                                             MessageGenParams messageGenParams) {
+    protected WebhookMessage generateMessage(
+            StatusChange statusChange,
+            WebHookModel model,
+            MessageGenParams messageGenParams) {
         try {
-            String message = generateMessage(statusChange, messageGenParams.getSourceId(),
-                    messageGenParams.getEventId(), messageGenParams.getCreatedAt(), messageGenParams.getExternalId());
+            String message = generateMessage(
+                    statusChange,
+                    messageGenParams.getSourceId(),
+                    messageGenParams.getEventId(),
+                    messageGenParams.getCreatedAt(),
+                    messageGenParams.getExternalId());
 
             Map<String, String> additionalHeaders = additionalHeadersGenerator.generate(model, message);
 
@@ -67,8 +73,12 @@ public class DestinationStatusChangeHookMessageGenerator extends BaseHookMessage
 
     }
 
-    private String generateMessage(StatusChange statusChange, String destinationId,
-                                   Long eventId, String createdAt, String externalId) throws JsonProcessingException {
+    private String generateMessage(
+            StatusChange statusChange,
+            String destinationId,
+            Long eventId,
+            String createdAt,
+            String externalId) throws JsonProcessingException {
 
         if (statusChange.getChanged().isSetAuthorized()) {
             DestinationAuthorized destination = new DestinationAuthorized();

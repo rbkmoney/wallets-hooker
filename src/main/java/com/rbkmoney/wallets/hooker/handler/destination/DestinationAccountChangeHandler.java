@@ -49,8 +49,8 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
             AccountChange account = change.getChange().getAccount();
             String identityId = account.getCreated().getIdentity();
 
-            log.info("Start handling DestinationAccountCreatedChange: destinationId={}, identityId={}", destinationId,
-                    identityId);
+            log.info("Start handling DestinationAccountCreatedChange: destinationId={}, identityId={}",
+                    destinationId, identityId);
 
             DestinationMessage destinationMessage = destinationMessageDao.get(destinationId);
             Destination destination = objectMapper.readValue(destinationMessage.getMessage(), Destination.class);
@@ -66,8 +66,8 @@ public class DestinationAccountChangeHandler implements DestinationEventHandler 
                             event.getCreatedAt()))
                     .forEach(webHookMessageSenderService::send);
 
-            log.info("Finish handling DestinationAccountCreatedChange: destinationId={}, identityId={}", destinationId,
-                    identityId);
+            log.info("Finish handling DestinationAccountCreatedChange: destinationId={}, identityId={}",
+                    destinationId, identityId);
 
         } catch (IOException e) {
             log.error("Error while handling DestinationAccountCreatedChange: {}", change, e);

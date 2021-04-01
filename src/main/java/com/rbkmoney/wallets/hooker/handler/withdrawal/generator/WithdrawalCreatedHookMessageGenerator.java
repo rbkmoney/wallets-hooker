@@ -29,10 +29,11 @@ public class WithdrawalCreatedHookMessageGenerator extends BaseHookMessageGenera
     private final ObjectMapper objectMapper;
     private final AdditionalHeadersGenerator additionalHeadersGenerator;
 
-    public WithdrawalCreatedHookMessageGenerator(WebHookMessageGeneratorServiceImpl<Withdrawal> generatorService,
-                                                 ObjectMapper objectMapper,
-                                                 AdditionalHeadersGenerator additionalHeadersGenerator,
-                                                 @Value("${parent.not.exist.id}") Long parentId) {
+    public WithdrawalCreatedHookMessageGenerator(
+            WebHookMessageGeneratorServiceImpl<Withdrawal> generatorService,
+            ObjectMapper objectMapper,
+            AdditionalHeadersGenerator additionalHeadersGenerator,
+            @Value("${parent.not.exist.id}") Long parentId) {
         super(parentId);
         this.generatorService = generatorService;
         this.objectMapper = objectMapper;
@@ -52,8 +53,9 @@ public class WithdrawalCreatedHookMessageGenerator extends BaseHookMessageGenera
             withdrawalStarted.setWithdrawal(withdrawal);
             withdrawalStarted.setEventType(Event.EventTypeEnum.WITHDRAWALSTARTED);
             withdrawalStarted.setEventID(messageGenParams.getEventId().toString());
-            withdrawalStarted.setOccuredAt(
-                    OffsetDateTime.parse(messageGenParams.getCreatedAt(), DateTimeFormatter.ISO_DATE_TIME));
+            withdrawalStarted.setOccuredAt(OffsetDateTime.parse(
+                    messageGenParams.getCreatedAt(),
+                    DateTimeFormatter.ISO_DATE_TIME));
             withdrawalStarted.setTopic(Event.TopicEnum.WITHDRAWALTOPIC);
 
             String requestBody = objectMapper.writeValueAsString(withdrawalStarted);
@@ -70,8 +72,8 @@ public class WithdrawalCreatedHookMessageGenerator extends BaseHookMessageGenera
 
             return webhookMessage;
         } catch (JsonProcessingException e) {
-            log.error("Error when generate webhookMessage event: {} model: {} eventId: {} e: ", event, model,
-                    messageGenParams.getEventId(), e);
+            log.error("Error when generate webhookMessage event: {} model: {} eventId: {} e: ",
+                    event, model, messageGenParams.getEventId(), e);
             throw new GenerateMessageException("WithdrawalCreated error when generate webhookMessage!", e);
         }
 

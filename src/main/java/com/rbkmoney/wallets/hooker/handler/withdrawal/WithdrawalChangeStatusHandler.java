@@ -53,8 +53,8 @@ public class WithdrawalChangeStatusHandler {
                             reference.getExternalId()))
                     .forEach(webHookMessageSenderService::send);
         } catch (Exception e) {
-            log.error("Error while handling WithdrawalStatusChangedChange: {}, withdrawalId: {}", change, withdrawalId,
-                    e);
+            log.error("Error while handling WithdrawalStatusChangedChange: {}, withdrawalId: {}",
+                    change, withdrawalId, e);
             throw new HandleEventException("Error while handling WithdrawalStatusChangedChange", e);
         }
     }
