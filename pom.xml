@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.rbkmoney</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>1.1.0</version>
+        <version>1.2.2</version>
     </parent>
 
     <artifactId>wallets-hooker</artifactId>
@@ -28,7 +28,7 @@
         <db.name>wallets_hooker</db.name>
         <db.url>jdbc:postgresql://${db.host.name}:${db.host.port}/${db.name}</db.url>
         <db.user>postgres</db.user>
-        <db.password>postgres</db.password>
+        <db.password>mysecretpassword</db.password>
         <db.schema>whook</db.schema>
         <!--        -->
         <fistful-proto.version>1.106-ebe76ef</fistful-proto.version>
@@ -307,7 +307,7 @@
                         </database>
                         <target>
                             <packageName>com.rbkmoney.wallets.hooker.domain</packageName>
-                            <directory>target/generated-sources/jooq</directory>
+                            <directory>src/main/java</directory>
                         </target>
                     </generator>
                 </configuration>
