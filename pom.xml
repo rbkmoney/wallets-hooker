@@ -6,7 +6,7 @@
     <parent>
         <groupId>com.rbkmoney</groupId>
         <artifactId>service-parent-pom</artifactId>
-        <version>1.2.2</version>
+        <version>1.2.3</version>
     </parent>
 
     <artifactId>wallets-hooker</artifactId>
@@ -31,9 +31,9 @@
         <db.password>postgres</db.password>
         <db.schema>whook</db.schema>
         <!--        -->
-        <fistful-proto.version>1.106-ebe76ef</fistful-proto.version>
-        <swag-wallets-webhook-events.version>1.9-3fc881e</swag-wallets-webhook-events.version>
-        <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
+        <fistful-proto.version>1.117-e340259</fistful-proto.version>
+        <swag-wallets-webhook-events.version>1.13-e8ed7c8</swag-wallets-webhook-events.version>
+        <webhook-dispatcher-proto.version>1.10-39f3bb5</webhook-dispatcher-proto.version>
         <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
         <sink-common-lib.version>0.0.4</sink-common-lib.version>
         <checkstyle.config.suppressions.path>./src/main/resources/checkstyle/checkstyle-suppressions.xml</checkstyle.config.suppressions.path>
@@ -60,6 +60,11 @@
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1.1-jre</version>
         </dependency>
 
         <!--Spring libs-->
