@@ -47,9 +47,6 @@ public class WithdrawalStatusChangedHookMessageGenerator extends BaseHookMessage
             WebHookModel model,
             MessageGenParams messageGenParams) {
         try {
-            log.info("Generate Webhook message from withdrawal_event_status_changed," +
-                            "event={}, model={}, messageGenParams={}",
-                    event, model, messageGenParams);
             String message = initRequestBody(
                     event.getStatus(),
                     messageGenParams.getSourceId(),
