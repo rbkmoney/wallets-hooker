@@ -5,10 +5,13 @@ import com.rbkmoney.fistful.base.CryptoData;
 import com.rbkmoney.fistful.base.Resource;
 import com.rbkmoney.fistful.base.ResourceBankCard;
 import com.rbkmoney.fistful.base.ResourceCryptoWallet;
+import com.rbkmoney.fistful.base.ResourceDigitalWallet;
 import com.rbkmoney.fistful.destination.Destination;
+import com.rbkmoney.mamsel.PaymentSystemUtil;
 import com.rbkmoney.swag.wallets.webhook.events.model.BankCard;
 import com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
+import com.rbkmoney.swag.wallets.webhook.events.model.DigitalWallet;
 import com.rbkmoney.wallets.hooker.exception.UnknownResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +52,8 @@ public class DestinationToDestinationMessageConverter
                 bankCard.paymentSystem(
                         BankCard.PaymentSystemEnum.fromValue(
                                 Objects.toString(
-                                        resourceBankCard.getBankCard().payment_system, null)
+                                        PaymentSystemUtil.getFistfulPaymentSystemName(resourceBankCard.getBankCard()),
+                                        null)
                         )
                 );
                 return bankCard;
@@ -70,6 +74,17 @@ public class DestinationToDestinationMessageConverter
                     );
                 }
                 return cryptoWallet;
+            case DIGITAL_WALLET:
+                DigitalWallet digitalWallet = new DigitalWallet();
+                ResourceDigitalWallet resourceDigitalWallet = resource.getDigitalWallet();
+                digitalWallet.setDigitalWalletId(resourceDigitalWallet.getDigitalWallet().getId());
+                if (resourceDigitalWallet.getDigitalWallet().isSetData()) {
+                    DigitalWallet.DigitalWalletProviderEnum digitalWalletProviderEnum = DigitalWallet
+                            .DigitalWalletProviderEnum.fromValue(
+                                    resourceDigitalWallet.getDigitalWallet().getData().getSetField().getFieldName());
+                    digitalWallet.setDigitalWalletProvider(digitalWalletProviderEnum);
+                }
+                return digitalWallet;
             default:
                 throw new UnknownResourceException("Can't init destination with unknown resource");
         }
