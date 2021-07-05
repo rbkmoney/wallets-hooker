@@ -32,7 +32,6 @@
         <db.schema>whook</db.schema>
         <!--        -->
         <fistful-proto.version>1.128-d331fce</fistful-proto.version>
-        <swag-wallets-webhook-events.version>1.13-e8ed7c8</swag-wallets-webhook-events.version>
         <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
         <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
         <sink-common-lib.version>0.0.4</sink-common-lib.version>
