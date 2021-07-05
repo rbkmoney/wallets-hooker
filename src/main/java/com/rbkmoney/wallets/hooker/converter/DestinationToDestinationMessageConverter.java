@@ -7,6 +7,7 @@ import com.rbkmoney.fistful.base.ResourceBankCard;
 import com.rbkmoney.fistful.base.ResourceCryptoWallet;
 import com.rbkmoney.fistful.base.ResourceDigitalWallet;
 import com.rbkmoney.fistful.destination.Destination;
+import com.rbkmoney.mamsel.PaymentSystemUtil;
 import com.rbkmoney.swag.wallets.webhook.events.model.BankCard;
 import com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet;
 import com.rbkmoney.swag.wallets.webhook.events.model.DestinationResource;
@@ -51,7 +52,8 @@ public class DestinationToDestinationMessageConverter
                 bankCard.paymentSystem(
                         BankCard.PaymentSystemEnum.fromValue(
                                 Objects.toString(
-                                        resourceBankCard.getBankCard().payment_system, null)
+                                        PaymentSystemUtil.getFistfulPaymentSystemName(resourceBankCard.getBankCard()),
+                                        null)
                         )
                 );
                 return bankCard;

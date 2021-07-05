@@ -105,6 +105,11 @@
         <!--RBK libs-->
         <dependency>
             <groupId>com.rbkmoney</groupId>
+            <artifactId>mamsel</artifactId>
+            <version>0.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.rbkmoney</groupId>
             <artifactId>fistful-proto</artifactId>
             <version>${fistful-proto.version}</version>
         </dependency>
@@ -200,13 +205,13 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>kafka</artifactId>
-            <version>1.14.3</version>
+            <version>1.15.3</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>postgresql</artifactId>
-            <version>1.14.3</version>
+            <version>1.15.3</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
