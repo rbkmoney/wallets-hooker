@@ -13,6 +13,7 @@ import com.rbkmoney.fistful.withdrawal.status.Succeeded;
 import com.rbkmoney.kafka.common.serialization.ThriftSerializer;
 import com.rbkmoney.machinegun.eventsink.MachineEvent;
 import com.rbkmoney.machinegun.msgpack.Value;
+import com.rbkmoney.swag.wallets.webhook.events.model.BankCardPaymentSystem;
 import com.rbkmoney.wallets.hooker.domain.WebHookModel;
 import com.rbkmoney.wallets.hooker.domain.enums.EventType;
 import org.apache.thrift.TBase;
@@ -34,7 +35,7 @@ public class TestBeanFactory {
         BankCard bankCard = new BankCard();
         bankCard.setBin("1234");
         bankCard.setMaskedPan("421");
-        bankCard.setPaymentSystem(BankCardPaymentSystem.mastercard);
+        bankCard.setPaymentSystem(new PaymentSystemRef(LegacyBankCardPaymentSystem.mastercard.name()));
         bankCard.setToken("token");
         Resource resource = new Resource();
         resource.setBankCard(new ResourceBankCard(bankCard));

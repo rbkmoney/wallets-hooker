@@ -31,8 +31,8 @@
         <db.password>postgres</db.password>
         <db.schema>whook</db.schema>
         <!--        -->
-        <fistful-proto.version>1.106-ebe76ef</fistful-proto.version>
-        <swag-wallets-webhook-events.version>1.9-3fc881e</swag-wallets-webhook-events.version>
+        <fistful-proto.version>1.128-d331fce</fistful-proto.version>
+        <swag-wallets-webhook-events.version>1.13-e8ed7c8</swag-wallets-webhook-events.version>
         <webhook-dispatcher-proto.version>1.9-f2aff0c</webhook-dispatcher-proto.version>
         <machinegun-proto.version>1.12-ebae56f</machinegun-proto.version>
         <sink-common-lib.version>0.0.4</sink-common-lib.version>
@@ -111,7 +111,7 @@
         <dependency>
             <groupId>com.rbkmoney</groupId>
             <artifactId>swag-wallets-webhook-events</artifactId>
-            <version>${swag-wallets-webhook-events.version}</version>
+            <version>1.14-a286afc</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>
@@ -120,6 +120,11 @@
         <dependency>
             <groupId>com.rbkmoney.woody</groupId>
             <artifactId>woody-thrift</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>30.1.1-jre</version>
         </dependency>
         <dependency>
             <groupId>com.rbkmoney</groupId>

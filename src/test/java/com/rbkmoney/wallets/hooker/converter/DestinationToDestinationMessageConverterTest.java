@@ -3,6 +3,7 @@ package com.rbkmoney.wallets.hooker.converter;
 import com.rbkmoney.fistful.base.*;
 import com.rbkmoney.fistful.destination.Destination;
 import com.rbkmoney.fistful.msgpack.Value;
+import com.rbkmoney.swag.wallets.webhook.events.model.BankCardPaymentSystem;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -23,7 +24,8 @@ public class DestinationToDestinationMessageConverterTest {
                                         .setMaskedPan("masked_pan")
                                         .setCardType(CardType.charge_card)
                                         .setBinDataId(Value.i(1))
-                                        .setPaymentSystem(BankCardPaymentSystem.mastercard)
+                                        .setPaymentSystem(new PaymentSystemRef(
+                                                LegacyBankCardPaymentSystem.mastercard.name()))
                         )
                 ));
         var swagDestination = converter.convert(destination);
@@ -49,6 +51,26 @@ public class DestinationToDestinationMessageConverterTest {
         assertEquals(destination.getName(), swagDestination.getName());
         var cryptoWallet = (com.rbkmoney.swag.wallets.webhook.events.model.CryptoWallet) swagDestination.getResource();
         assertNotNull(cryptoWallet.getCurrency());
+    }
+
+    @Test
+    public void testConvertFromEventWithDigitalWalletResource() {
+        Destination destination = new Destination()
+                .setName("name")
+                .setExternalId("external_id")
+                .setResource(Resource.digital_wallet(
+                        new ResourceDigitalWallet((
+                                new DigitalWallet("digital_wallet_id",
+                                        DigitalData.webmoney(new DigitalDataWebmoney()))
+                        ))
+                ));
+        var swagDestination = converter.convert(destination);
+        assertEquals(destination.getExternalId(), swagDestination.getExternalID());
+        assertEquals(destination.getName(), swagDestination.getName());
+        var digitalWallet = (com.rbkmoney.swag.wallets.webhook.events.model.DigitalWallet) swagDestination
+                .getResource();
+        assertNotNull(digitalWallet.getDigitalWalletId());
+        assertNotNull(digitalWallet.getDigitalWalletProvider());
     }
 
     @Test
